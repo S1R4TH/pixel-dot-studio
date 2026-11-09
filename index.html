@@ -2428,7 +2428,7 @@ $('alphaRange').addEventListener('input', function(){ var c = S.color.slice(); c
 $('swTrans').addEventListener('click', function(){ setColor([0,0,0,0]); toast('透明ピクセルを選択しました。ペン／塗りつぶしで透明を打てます'); });
 
 /* ================= pointer / touch ================= */
-var pointers = new Map(), drawing = false, pinchStart = null, panStart = null, bgPan = null;
+var pointers = new Map(), drawing = false, pinchStart = null, panStart = null, bgPan = null, midPan = null;
 function eventToCell(e){
   var r = view.getBoundingClientRect();
   var x = Math.floor((e.clientX - r.left) / (r.width / S.w));
@@ -2445,6 +2445,19 @@ view.addEventListener('pointerdown', function(e){
     S.cursor.x = rc.x; S.cursor.y = rc.y;
     setColor(getPx(flattenData(curFrame()), rc.x, rc.y));
     render();
+    return;
+  }
+  /* PC：マウスの中ボタン（ホイールボタン）を押しながらドラッグすると、
+     どのツールを選んでいても表示位置を動かせる（パン）。描画はしない。
+     中ボタンのブラウザ既定動作（オートスクロール等）は preventDefault
+     で抑止する。このポインタは pointers（ピンチ判定用）には入れず
+     専用の midPan で独立に追うので、描画中・ピンチ中の状態やズーム
+     には影響しない */
+  if (e.pointerType === 'mouse' && e.button === 1){
+    e.preventDefault();
+    view.setPointerCapture(e.pointerId);
+    midPan = { id: e.pointerId, x: e.clientX, y: e.clientY, panX: S.panX, panY: S.panY };
+    stage.classList.add('panning'); view.classList.add('panning');
     return;
   }
   view.setPointerCapture(e.pointerId);
@@ -2472,6 +2485,13 @@ view.addEventListener('pointerdown', function(e){
   drawing = true; applyTool(cell.x, cell.y, true);
 });
 view.addEventListener('pointermove', function(e){
+  /* 中ボタンのパンは pointers に入っていないポインタで動かす。
+     パン量は移動ツールのパンと同じくドラッグ量そのまま */
+  if (midPan && e.pointerId === midPan.id){
+    S.panX = midPan.panX + (e.clientX - midPan.x);
+    S.panY = midPan.panY + (e.clientY - midPan.y);
+    render(); return;
+  }
   if (!pointers.has(e.pointerId)) return;
   pointers.set(e.pointerId, {x:e.clientX, y:e.clientY});
   if (pointers.size === 2 && pinchStart){
@@ -2493,6 +2513,11 @@ view.addEventListener('pointermove', function(e){
   }
 });
 function endPointer(e){
+  /* 中ボタンのパンの終了。描画・ピンチ側の状態には触れない */
+  if (midPan && e.pointerId === midPan.id){
+    midPan = null;
+    if (!panStart){ stage.classList.remove('panning'); view.classList.remove('panning'); }
+  }
   pointers.delete(e.pointerId);
   if (pointers.size < 2) pinchStart = null;
   if (pointers.size === 0){ drawing = false; panStart = null; stage.classList.remove('panning'); view.classList.remove('panning'); }
@@ -2512,6 +2537,10 @@ document.addEventListener('selectstart', function(e){
    拡大後に全体表示へ戻さなくても、見たい場所へそのまま移動できるようにする */
 stage.addEventListener('pointerdown', function(e){
   if (e.target !== stage) return;
+  /* 中ボタンのブラウザ既定動作（オートスクロール等）は余白でも
+     抑止する。余白での中ボタンドラッグは bgPan がそのままパンとして
+     扱う（ボタン種別で分岐していないため） */
+  if (e.pointerType === 'mouse' && e.button === 1) e.preventDefault();
   bgPan = { x: e.clientX, y: e.clientY, panX: S.panX, panY: S.panY, id: e.pointerId };
   stage.setPointerCapture(e.pointerId);
   stage.classList.add('panning');
@@ -2527,6 +2556,11 @@ function endBgPan(e){
 }
 stage.addEventListener('pointerup', endBgPan);
 stage.addEventListener('pointercancel', endBgPan);
+/* 中ボタンのオートスクロールは mousedown の既定動作でもあるため、
+   pointerdown 側の preventDefault でマウスイベント自体が止まる経路
+   とは別に、ステージ内の中ボタン mousedown も止めておく（保険。
+   描画はポインタイベント側で処理するので影響しない） */
+stage.addEventListener('mousedown', function(e){ if (e.button === 1) e.preventDefault(); });
 stage.addEventListener('wheel', function(e){
   e.preventDefault();
   /* ホットスポット指定ビューが開いている間は、ホイールもそちらの
