@@ -654,7 +654,7 @@
           <label>スーパーゲームボーイのパレット
             <select id="presetSgbSel" aria-label="スーパーゲームボーイのパレット"></select>
           </label>
-          <p class="note">絵の明るさをゲームボーイの4階調（白・薄・濃・黒）に分け、その階調に選んだパレットの色をそのまま割り当てます。パレットを選び直すと、プレビューがその場で変わります。</p>
+          <p class="note">絵の明るさをゲームボーイの4階調（白・薄・濃・黒）に分け、その階調に選んだパレットの色をそのまま割り当てます。スーパーゲームボーイの色域が有効な間にパレットを選び直すと、今の絵へ新しいパレットがそのまま適用されます（「戻す」で戻せます）。</p>
         </div>
         <label class="row" style="margin-top:8px"><input type="checkbox" id="presetCropPad"> 切り取り・余白で合わせる</label>
         <div id="colorLevelWrap" style="margin-top:10px">
@@ -664,11 +664,11 @@
           <label style="margin-top:8px">コントラスト
             <input type="range" id="colorContrast" min="-50" max="50" step="1" value="0" style="width:100%" aria-label="コントラスト">
           </label>
-          <p class="note">中央が標準です。右に動かすほど中間の色が明るい方へ寄り、左に動かすほど暗い方へ寄ります。すべての機種・変換で共通の設定で、色域への変換の前に明るさの分布を調整します（変換は必ず最後に当たるため、色域の外の色は出ません）。「ドット化と減色」のスライダーや、切り取り画面のスライダーとは同じ値を共有します。適用する前でも、機種を選んでいる間は動かすと変換した姿がその場でプレビュー表示されます（プレビューの間は絵そのものは変わりません）。レベルは適用する前に決める値です。適用した後に動かしても、適用済みの絵は変わりません（結果を直したいときは「戻す」で適用前に戻し、レベルを変えて適用し直してください）。コントラストも同じ段の調整で、中央が標準、右に動かすほど明暗の差が広がり、左に動かすほど狭まります。値もレベルと同じく3か所で共有し、中央のときは無変換です。</p>
+          <p class="note">中央が標準です。右に動かすほど中間の色が明るい方へ寄り、左に動かすほど暗い方へ寄ります。すべての機種・変換で共通の設定で、色域への変換の前に明るさの分布を調整します（変換は必ず最後に当たるため、色域の外の色は出ません）。「ドット化と減色」のスライダーとは同じ値を共有します。機種を選ぶときは、この値で色域への変換が行われます。機種を選んでいる間（色域が有効な間）に動かすと、その調整が今の絵へそのまま適用され、色域も維持されます。この調整は「戻す／進む」の対象で、戻すと絵とスライダーの値が調整前に戻ります。コントラストも同じ段の調整で、中央が標準、右に動かすほど明暗の差が広がり、左に動かすほど狭まります。値もレベルと同じく共有し、中央のときは無変換です。</p>
         </div>
-        <button id="btnPreset" style="width:100%;margin-top:8px">プリセットを適用する</button>
-        <p class="note">キャンバスサイズ・色空間・同時色数をまとめて適用します（戻せます）。機種を選ぶと、適用前に今の絵をその機種の色域に変換した姿がキャンバスにプレビュー表示されます。拡縮を伴う場合は、切り取り位置を決める画面でも拡縮後の絵に色域変換をかけた姿でプレビュー表示されます。どの機種でも、その切り取り画面の中でもカラーレベルとコントラストを調整できます。</p>
-        <p class="note note-live" id="presetPreviewNote" style="display:none"></p>
+        <button id="btnPreset" style="width:100%;margin-top:8px">解像度を合わせる</button>
+        <p class="note">機種を選んだ時点で、その機種の色域（固定パレット・専用階調、または色空間と同時色数）がそのまま有効になり、今の絵もその色域に変換されます（「戻す」で戻せます）。見えている絵がそのまま作品で、このまま描く色も、書き出す画像も、この色域に合います。解像度は選んだだけでは変わりません。解像度も機種に合わせたいときは「解像度を合わせる」を押してください（縦横比が変わる場合は、切り取り位置を決める画面が出ます）。機種の選択を「選んでください」に戻すと、色域だけが解除されます（絵はそのままです）。</p>
+        <p class="note note-live" id="presetActiveNote" style="display:none"></p>
       </div>
     </div>
     <div class="acc" data-acc>
@@ -685,29 +685,8 @@
             <option value="4096">4096色（RGB各4bit）</option>
             <option value="512">512色（RGB各3bit）</option>
             <option value="64">64色（RGB各2bit）</option>
-            <optgroup label="固定パレット・専用階調">
-              <option value="pal-gb">ゲームボーイ（専用グリーン4階調）</option>
-              <option value="pal-gbp">ゲームボーイポケット（グレー4階調）</option>
-              <option value="pal-vb">バーチャルボーイ（専用赤4階調）</option>
-              <option value="pal-fc">ファミコン（固定54色パレット・同時25色）</option>
-              <option value="pal-sgb">スーパーゲームボーイ（専用4色パレット）</option>
-              <option value="pal-gbc">ゲームボーイカラー（GBソフト用・専用4色パレット）</option>
-              <option value="pal-ws">ワンダースワン（モノクロ8階調）</option>
-            </optgroup>
           </select></label>
-        <div id="csSgbWrap" style="display:none;margin-top:8px">
-          <label>スーパーゲームボーイのパレット
-            <select id="csSgbSel" aria-label="スーパーゲームボーイのパレット"></select>
-          </label>
-          <p class="note">絵の明るさをゲームボーイの4階調（白・薄・濃・黒）に分け、その階調に選んだパレットの色をそのまま割り当てます。パレットを選び直すと、プレビューがその場で変わります。</p>
-        </div>
-        <div id="csGbcWrap" style="display:none;margin-top:8px">
-          <label>ゲームボーイカラーのパレット（GBソフト用）
-            <select id="csGbcSel" aria-label="ゲームボーイカラーのパレット"></select>
-          </label>
-          <p class="note">ゲームボーイカラーが白黒のゲームボーイ用ソフトに当てる内蔵パレットです。絵の明るさを4階調（白・薄・濃・黒）に分け、その階調に選んだパレットの色をそのまま割り当てます。パレットを選び直すと、プレビューがその場で変わります。</p>
-        </div>
-        <p class="note">ビット段の色空間は、選んだ時点で今の絵の色をその色空間に寄せます（全フレーム・全レイヤー対象、戻せます）。以後選ぶ色もその色空間に寄ります。ゲームボーイ／ゲームボーイポケット／バーチャルボーイ／ファミコン／スーパーゲームボーイ／ゲームボーイカラー／ワンダースワンを選ぶと、キャンバスサイズはそのままに、色だけを専用階調・固定パレットへ変換します。その場合は適用前に変換した姿がプレビュー表示されますので、カラーレベルで調整してから「この色変換を適用する」ボタンで確定してください。</p>
+        <p class="note">ビット段の色空間は、選んだ時点で今の絵の色をその色空間に寄せます（全フレーム・全レイヤー対象、戻せます）。以後選ぶ色もその色空間に寄ります。固定パレット・専用階調の色域は、ここでは扱いません。使いたいときは「機種プリセット」で機種を選んでください（選んだ時点で色域が有効になります）。機種プリセットの固定パレットが有効な間は、この欄にはそのパレット名が表示されます。「制限なし」を選ぶと、その色域は解除されます（絵はそのままです）。</p>
         <p class="note note-live" id="csPreviewNote" style="display:none"></p>
         <button id="btnCsApply" style="width:100%;margin-top:8px;display:none">この色変換を適用する</button>
         <div style="height:10px"></div>
@@ -748,7 +727,7 @@
           <label style="margin-top:8px">コントラスト
             <input type="range" id="reduceContrast" min="-50" max="50" step="1" value="0" style="width:100%" aria-label="コントラスト（ドット化と減色）">
           </label>
-          <p class="note">中央が標準です。色空間への変換と減色の前に適用される、明るさの分布の調整です。色数が選ばれている間は、プレビューにも補正→減色までかけた姿が出るので、見えている色のまま実行結果になります。機種プリセット欄や切り取り画面のスライダーとは同じ値を共有します。レベルは変換する前に決める値です。適用した後に動かしても、適用済みの絵は変わりません（結果を直したいときは「戻す」で適用前に戻し、レベルを変えて適用し直してください）。コントラストも同じ段の調整で、中央が標準、右で明暗の差が広がり、左で狭まります。値もレベルと同じく3か所で共有し、中央のときは無変換です。</p>
+          <p class="note">中央が標準です。色空間への変換と減色の前に適用される、明るさの分布の調整です。色数が選ばれている間は、プレビューにも補正→減色までかけた姿が出るので、見えている色のまま実行結果になります。機種プリセット欄のスライダーとは同じ値を共有します。機種を選んでいる間に動かした場合は、プリセット欄側の扱い（今の絵へそのまま適用され、「戻す／進む」の対象）になります。それ以外の場合は変換する前に決める値で、適用した後に動かしても適用済みの絵は変わりません（結果を直したいときは「戻す」で適用前に戻し、レベルを変えて適用し直してください）。コントラストも同じ段の調整で、中央が標準、右で明暗の差が広がり、左で狭まります。値もレベルと同じく共有し、中央のときは無変換です。</p>
         </div>
         <label class="row" style="margin-top:10px"><input type="checkbox" id="palLockToggle"> パレットを固定する</label>
         <p class="note">「絵を拡縮する」でサイズ変更するときにだけ効きます。ONでは今の絵の色だけで拡縮します。</p>
@@ -840,7 +819,7 @@
       <button id="saveShare">共有シートを開く</button>
       <a id="saveOpen" href="#" target="_blank" rel="noopener">新しいタブで開く</a>
     </div>
-    <p id="saveHint" style="margin-top:12px">プレビューを長押しで保存できます。</p>
+    <p id="saveHint" style="margin-top:12px">長押しで保存できます。</p>
     <button class="cancel" data-close>閉じる</button>
   </div>
 </div>
@@ -891,19 +870,6 @@
     <p class="note p-note" id="cropHelp" style="margin-top:6px"></p>
     <canvas id="cropView" width="300" height="300"></canvas>
     <p class="note" id="cropPos" style="text-align:center;margin-top:8px"></p>
-    <!-- 機種プリセットの適用でこの画面が開いたときだけ出すカラーレベル
-         （全機種共通）。切り取り位置を決めるプレビューを見ながら、その場で
-         明るさの寄せ方を調整できるようにするためのもので、変換パネル側の
-         スライダーと同じ値を共有する -->
-    <div id="cropLevelWrap" style="display:none;margin-top:10px">
-      <label>カラーレベル
-        <input type="range" id="cropLevel" min="-50" max="50" step="1" value="0" style="width:100%" aria-label="カラーレベル（切り取り画面）">
-      </label>
-      <label style="margin-top:8px">コントラスト
-        <input type="range" id="cropContrast" min="-50" max="50" step="1" value="0" style="width:100%" aria-label="コントラスト（切り取り画面）">
-      </label>
-      <p class="note p-note">中央が標準です。右に動かすほど中間の色が明るい階調へ寄り、左に動かすほど暗い階調へ寄ります。コントラストも中央が標準で、右で明暗の差が広がり、左で狭まります。動かすと上のプレビューがその場で変わります。「この位置で決定する」を押すと、このレベルとコントラストのまま適用されます。</p>
-    </div>
     <!-- 枠の移動ボタンは十字配置ではなく横1行。プレビューのすぐ下に、
          決定・キャンセルと同じまとまりとして置く（ドラッグ移動と
          PCの矢印キーは従来どおり使える） -->
@@ -997,12 +963,12 @@ var PALETTE_MODE_LABELS = {
   fc: 'ファミコン（固定54色パレット）',
   ws: 'ワンダースワン（モノクロ8階調）'
 };
-/* スーパーゲームボーイ／ゲームボーイカラーのパレット選択状態。
-   入口ごとに独立に持つ（機種プリセット欄／色空間の単体変換欄）。
-   値はパレットID（SGBは '1A'〜'4H'、GBCは 'brown' 等）で、初期値は
-   SGBが 1A、GBCがデフォルト。適用すると、この選択がパレットモードの
-   文字列（'sgb:1A'／'gbc:brown'）に焼き込まれて保持される */
-var selSgbPreset = '1A', selSgbCs = '1A', selGbcCs = 'default';
+/* スーパーゲームボーイのパレット選択状態（機種プリセット欄の選択）。
+   値はパレットID（'1A'〜'4H'）で、初期値は 1A。プリセットを選ぶと、
+   この選択がパレットモードの文字列（'sgb:1A'）に焼き込まれて
+   保持される。ゲームボーイカラーの内蔵パレットは、旧プロジェクトの
+   パレットモード（'gbc:...'）の復元用にデータだけ残す */
+var selSgbPreset = '1A';
 function paletteForMode(mode){
   if (mode === 'gb') return GB_PALETTE;
   if (mode === 'gbp') return GBP_PALETTE;
@@ -1024,14 +990,6 @@ function paletteModeLabel(mode){
     return nm ? ('ゲームボーイカラー ' + nm) : '';
   }
   return PALETTE_MODE_LABELS[mode] || '';
-}
-/* パレットモードに対応する、色空間セレクタの値（pal-*）。
-   SGB／GBはパレットIDを含まない入口の値に戻す */
-function csValueForMode(mode){
-  if (!mode) return null;
-  if (mode.indexOf('sgb:') === 0) return 'pal-sgb';
-  if (mode.indexOf('gbc:') === 0) return 'pal-gbc';
-  return 'pal-' + mode;
 }
 /* プロジェクトJSON等から読み込んだパレットモード文字列の検証。
    存在しないパレットIDはモードなしとして扱う（旧形式の読み込み互換） */
@@ -1096,6 +1054,17 @@ function effColor(){
   return snapColor(S.color);
 }
 function makeFrame(){ return { layers: [makeLayer(null, 'レイヤー1')], active: 0 }; }
+/* 現在選択中の機種プリセットのキー（PRESETS のキー、未選択なら null）。
+   プリセットを選ぶとその色域が即時に有効になるため、「どの機種の色域が
+   有効か」はドキュメントの状態の一部として履歴スナップショットにも
+   含める（snapshotDoc／restoreDoc）。カラーレベル／コントラストの
+   調整ジェスチャ（下の levelGesture）も同じ考え方で履歴に含める */
+var currentPresetKey = null;
+/* カラーレベル／コントラストのスライダー調整（プリセット選択中）の
+   進行中ジェスチャ。開始時に履歴を1回だけ積み、開始時点のピクセルと
+   値を保持して、入力のたびに開始時点の絵から相対補正で作り直す。
+   終了（change）で破棄する */
+var levelGesture = null;
 function curFrame(){ return S.frames[S.cur]; }
 function activeLayer(){ var f = curFrame(); return f.layers[f.active]; }
 S.frames.push(makeFrame());
@@ -1250,6 +1219,14 @@ function snapshotDoc(){
   var bytes = 0;
   var snap = {
     w: S.w, h: S.h, cur: S.cur, colorSpace: S.colorSpace, paletteMode: S.paletteMode || null,
+    /* カラーレベル／コントラストとプリセット選択もドキュメントの状態
+       として一緒に記録する。プリセット選択中にレベル／コントラストを
+       調整した操作を「戻す」と、絵だけでなくスライダーの値と色域の
+       持ち主（プリセット）も調整前に戻り、「進む」で再適用される */
+    colorLevel: (typeof colorLevel === 'number') ? colorLevel : 0,
+    colorContrast: (typeof colorContrast === 'number') ? colorContrast : 0,
+    presetKey: currentPresetKey || null,
+    sgbPreset: (typeof selSgbPreset === 'string') ? selSgbPreset : '1A',
     frames: S.frames.map(function(fr){
       return { active: fr.active, layers: fr.layers.map(function(L){
         bytes += L.data.length;
@@ -1270,6 +1247,22 @@ function restoreDoc(snap){
   S.paletteMode = snap.paletteMode || null;
   syncColorSpaceUI();
   if (S.paletteMode) buildPalette([]);
+  /* レベル／コントラスト・プリセット選択もピクセルと一緒に復元する */
+  if (typeof snap.colorLevel === 'number' && isFinite(snap.colorLevel)){
+    colorLevel = clamp(Math.round(snap.colorLevel), -50, 50);
+    syncLevelSliders();
+  }
+  if (typeof snap.colorContrast === 'number' && isFinite(snap.colorContrast)){
+    colorContrast = clamp(Math.round(snap.colorContrast), -50, 50);
+    syncContrastSliders();
+  }
+  if (typeof snap.sgbPreset === 'string' && sgbPaletteById(snap.sgbPreset)){
+    selSgbPreset = snap.sgbPreset;
+    var psgb = $('presetSgbSel'); if (psgb) psgb.value = selSgbPreset;
+  }
+  currentPresetKey = (snap.presetKey && typeof PRESETS !== 'undefined' && PRESETS[snap.presetKey]) ? snap.presetKey : null;
+  var psel = $('presetSel'); if (psel) psel.value = currentPresetKey || '';
+  syncPresetUI();
   S.cursor.x = clamp(S.cursor.x, 0, S.w - 1);
   S.cursor.y = clamp(S.cursor.y, 0, S.h - 1);
   $('inW').value = S.w; $('inH').value = S.h;
@@ -1285,6 +1278,9 @@ function trimHistory(stack){
   while (stack.length > 1 && total > HISTORY_MAX_BYTES){ total -= stack[0].bytes || 0; stack.shift(); }
 }
 function pushUndo(){
+  /* レベル調整のジェスチャが進行中なら、ここで確定扱いにして破棄する
+     （ジェスチャ開始側は pushUndo の後に levelGesture を立てる） */
+  levelGesture = null;
   /* カラーレベルのプレビュー表示中なら、履歴に変換後の姿が残らないよう、
      先に元の絵へ戻してから記録する */
   endLevelPreview();
@@ -1297,6 +1293,7 @@ function clearUndoStacks(){ S.undoStack = []; S.redoStack = []; syncUndoBtns(); 
 function syncUndoBtns(){ $('btnUndo').disabled = !S.undoStack.length; $('btnRedo').disabled = !S.redoStack.length; }
 function doUndo(){
   if (!S.undoStack.length) return;
+  levelGesture = null;
   endLevelPreview();
   if (S.playing) stopPlay();
   var ow = S.w, oh = S.h;
@@ -1307,6 +1304,7 @@ function doUndo(){
 }
 function doRedo(){
   if (!S.redoStack.length) return;
+  levelGesture = null;
   endLevelPreview();
   if (S.playing) stopPlay();
   var ow = S.w, oh = S.h;
@@ -1503,7 +1501,7 @@ function syncPaletteModeUI(){
   if (!el) return;
   if (S.paletteMode && paletteModeLabel(S.paletteMode)){
     el.style.display = '';
-    el.textContent = '現在の色域は' + paletteModeLabel(S.paletteMode) + 'です。カラーピッカーやカラーコードで選んだ色も、このパレットの最も近い色に寄ります。解除するには、変換パネルの「色空間」で「制限なし」を選んでください。';
+    el.textContent = '現在の色域は' + paletteModeLabel(S.paletteMode) + 'です。カラーピッカーやカラーコードで選んだ色も、このパレットの最も近い色に寄ります。解除するには、変換パネルの「色空間」で「制限なし」を選ぶか、機種プリセットの選択を「選んでください」に戻してください。';
   } else {
     el.style.display = 'none';
   }
@@ -1526,33 +1524,30 @@ function collectUsedHexes(){
   return out;
 }
 /* 色空間の選択UIを現在の状態に合わせる（Undo復元・プロジェクト読み込み用）。
-   パレットモード有効中はセレクタにもそのパレット（pal-*）を表示する。
-   これにより「制限なし」を選び直す操作でモードを解除できる */
+   固定パレットは機種プリセット側に一本化したため、セレクタに固定
+   パレットの選択肢は無い。パレットモード有効中は、現在のパレットを
+   示すだけの選択肢（選べない表示専用）を差し込んでそれを表示し、
+   「制限なし」を選び直す操作でモードを解除できるようにする */
 function syncColorSpaceUI(){
   var el = $('colorSpaceSel');
-  if (el) el.value = S.paletteMode ? csValueForMode(S.paletteMode) : String(S.colorSpace || 0);
-  /* SGB／GBCのモードが有効な間は、単体変換側のパレット選択もその
-     パレットに合わせておく（選び直してプレビューし直すときに、
-     適用済みのパレットから始められるようにするため） */
-  if (S.paletteMode && S.paletteMode.indexOf('sgb:') === 0){
-    selSgbCs = S.paletteMode.slice(4);
-    var ss = $('csSgbSel'); if (ss) ss.value = selSgbCs;
+  if (el){
+    var cur = $('csPalCurrent');
+    if (S.paletteMode){
+      if (!cur){
+        cur = document.createElement('option');
+        cur.id = 'csPalCurrent';
+        cur.value = '__palcurrent';
+        cur.disabled = true;
+        el.appendChild(cur);
+      }
+      cur.textContent = paletteModeLabel(S.paletteMode) + '（機種プリセットの色域）';
+      el.value = '__palcurrent';
+    } else {
+      if (cur) cur.remove();
+      el.value = String(S.colorSpace || 0);
+    }
   }
-  if (S.paletteMode && S.paletteMode.indexOf('gbc:') === 0){
-    selGbcCs = S.paletteMode.slice(4);
-    var gs = $('csGbcSel'); if (gs) gs.value = selGbcCs;
-  }
-  syncCsPaletteSelects();
   syncPaletteModeUI();
-}
-/* 色空間セレクタで SGB／GBC が選ばれている間だけ、そのパレット選択欄を
-   出す。セレクタの値がプログラム側で変わった場合（Undo復元・プロジェ
-   クト読み込み・モード解除）にも追随させる */
-function syncCsPaletteSelects(){
-  var el = $('colorSpaceSel');
-  var v = el ? el.value : '';
-  var sw = $('csSgbWrap'); if (sw) sw.style.display = v === 'pal-sgb' ? '' : 'none';
-  var gw = $('csGbcWrap'); if (gw) gw.style.display = v === 'pal-gbc' ? '' : 'none';
 }
 /* ================= 色変換の共通処理（一本化） =================
    色の変換はすべてこの1本（convertColorDatas）に寄せる。入口（機種
@@ -1607,7 +1602,7 @@ function syncCsPaletteSelects(){
    減色欄／切り取り画面）はすべてこの1つの値を共有し、同期する */
 var colorLevel = 0;
 function syncLevelSliders(){
-  ['colorLevel', 'reduceLevel', 'cropLevel'].forEach(function(id){
+  ['colorLevel', 'reduceLevel'].forEach(function(id){
     var el = $(id);
     if (el && +el.value !== colorLevel) el.value = colorLevel;
   });
@@ -1621,7 +1616,7 @@ function syncLevelSliders(){
    レベルのスライダーと並べて同期する */
 var colorContrast = 0;
 function syncContrastSliders(){
-  ['colorContrast', 'reduceContrast', 'cropContrast'].forEach(function(id){
+  ['colorContrast', 'reduceContrast'].forEach(function(id){
     var el = $(id);
     if (el && +el.value !== colorContrast) el.value = colorContrast;
   });
@@ -2051,17 +2046,15 @@ function convertColorDatas(datas, w, h, spec, frameGroups){
 function applyPresetColorsToDatas(datas, w, h, preset, frameGroups){
   return convertColorDatas(datas, w, h, presetSpec(preset), frameGroups);
 }
-/* 色域ライブプレビュー（適用前）：変換先を選んでいる間、今の絵を
-   その色域に変換した姿をその場でキャンバスに表示する。入口は2つ
-   （機種プリセット／色空間の固定パレット・専用階調の単体変換）あるが、
-   プレビューの保持・復元・変換はこの仕組みで一元管理し、入口ごとに
-   別管理はしない。どちらの入口でも、適用時と同じ共通処理
-   （カラーレベル補正→色域変換）をかけ、カラーレベルのスライダーを
-   動かすたびにプレビューを作り直す。サイズ変更を伴わない場合でも、変換先を
-   選べばプレビューは出る。
-   サイズ変更はプレビューに含めない（キャンバスの大きさは元のまま、
-   色だけを変換して見せる。拡縮後の姿は、適用時の切り取り画面でも
-   色域変換済みの絵でプレビュー表示する）。
+/* 色変換のライブプレビュー（適用前）：変換先を選んでいる間、今の絵を
+   変換した姿をその場でキャンバスに表示する仕組み。入口は「制限なしの
+   補正のみ」と「減色」の2つで、プレビューの保持・復元・変換はこの
+   仕組みで一元管理し、入口ごとに別管理はしない。どちらの入口でも、
+   適用時と同じ共通処理（カラーレベル補正→色域変換）をかけ、
+   カラーレベルのスライダーを動かすたびにプレビューを作り直す。
+   機種プリセットはこの仕組みを使わない：プリセットの色域は選んだ
+   時点でドキュメントへそのまま適用される（プレビューという状態は
+   持たない）。
    ドキュメント自体は変更しない：表示用にレイヤーのピクセルを一時的に
    差し替えるが、元のピクセルと色パレットを保持しておき、プレビューを
    終了するときにそのまま戻す。履歴は消費しない。色空間の全域設定も
@@ -2070,10 +2063,10 @@ function applyPresetColorsToDatas(datas, w, h, preset, frameGroups){
    構造（サイズ／フレーム数／レイヤー数）が変わっていたら戻さずに破棄する */
 var levelPreview = null;
 /* プレビューの要求：どの入口が・何への変換をプレビューしたいか。
-   { source: 'preset'|'cs', key } で、preset の key は機種キー、
-   cs の key は色空間セレクタの固定パレット値（pal-gb 等）。
-   変換指定（spec）は表示のたびに現在のカラーレベル・ディザリング
-   設定で作り直すので、プレビュー中の調整がそのまま反映される */
+   { source: 'cs'|'reduce', key } で、cs の key は 'none'（色域変換なし・
+   補正のみ）、reduce の key は色数。変換指定（spec）は表示のたびに
+   現在のカラーレベル・ディザリング設定で作り直すので、プレビュー中の
+   調整がそのまま反映される */
 var previewRequest = null;
 function levelPreviewStructureOk(lp){
   if (!lp || lp.w !== S.w || lp.h !== S.h || lp.frames.length !== S.frames.length) return false;
@@ -2085,19 +2078,8 @@ function levelPreviewStructureOk(lp){
 function currentPaletteHexes(){
   return Array.from($('palette').children).map(function(b){ return b.dataset.hex; }).filter(Boolean);
 }
-/* プレビュー中であることをプリセット欄の注記で知らせる（適用済みと
-   誤解されないようにするため。プレビューをやめるときに消す） */
-function showPresetPreviewNote(p){
-  var el = $('presetPreviewNote');
-  if (!el) return;
-  el.style.display = '';
-  el.textContent = 'プレビュー中：' + p.name + '（' + presetColorDesc(p) + '）に変換した姿を表示しています。まだ適用されていません。「プリセットを適用する」を押すと、サイズ変更とあわせて確定します。';
-}
-function hidePresetPreviewNote(){
-  var el = $('presetPreviewNote');
-  if (el) el.style.display = 'none';
-}
-/* 単体変換（色空間セレクタ）側のプレビュー注記と確定ボタンを消す */
+/* プレビュー中であることを、入口側の注記で知らせる（適用済みと
+   誤解されないようにするため） */
 function hideCsPreviewNote(){
   var el = $('csPreviewNote');
   if (el) el.style.display = 'none';
@@ -2114,11 +2096,6 @@ function hideReducePreviewNote(){
    要求が無い／変換先が見つからない場合は null */
 function previewInfo(){
   if (!previewRequest) return null;
-  if (previewRequest.source === 'preset'){
-    var p = (typeof PRESETS !== 'undefined') ? PRESETS[previewRequest.key] : null;
-    if (!p) return null;
-    return { spec: presetSpec(p), preset: p };
-  }
   if (previewRequest.source === 'reduce'){
     /* 減色のプレビューは、実行ボタン（btnReduce）とまったく同じ変換
        指定（reduceSpec）で作る。補正（レベル＋コントラスト）→減色→
@@ -2135,14 +2112,7 @@ function previewInfo(){
 /* プレビュー中であることを、入口側の注記で知らせる（適用済みと
    誤解されないようにするため。もう一方の入口の注記は消す） */
 function showPreviewNote(info){
-  if (info.preset){
-    hideCsPreviewNote();
-    hideReducePreviewNote();
-    showPresetPreviewNote(info.preset);
-    return;
-  }
   if (info.reduceCount){
-    hidePresetPreviewNote();
     hideCsPreviewNote();
     var rel = $('reducePreviewNote');
     if (rel){
@@ -2152,7 +2122,6 @@ function showPreviewNote(info){
     return;
   }
   hideReducePreviewNote();
-  hidePresetPreviewNote();
   var el = $('csPreviewNote');
   if (el){
     el.style.display = '';
@@ -2199,7 +2168,6 @@ function updateLevelPreview(){
    変換パネルを閉じる・プリセット適用の開始・他の編集（履歴を積む操作／
    戻す／進む）の前に呼ばれる。構造が変わっていたら何も戻さず破棄する */
 function endLevelPreview(){
-  hidePresetPreviewNote();
   hideCsPreviewNote();
   hideReducePreviewNote();
   if (!levelPreview) return;
@@ -2214,12 +2182,13 @@ function endLevelPreview(){
   if (lp.paletteHexes && lp.paletteHexes.length) buildPalette(lp.paletteHexes);
   render();
 }
-/* プリセットの色まわりのステップ（履歴は積まない：呼び出し側が pushUndo
-   済みであること）。色空間の全体設定だけ機種の値へ切り替え（ピクセルへの
-   吸着はここでは行わない）、色の変換そのものは共通処理
-   （convertColorDatas）へ変換指定を渡して行う。変換はこの時点で確定し、
-   適用後にカラーレベルを動かしても適用済みの絵は変わらない（直したい
-   ときは「戻す」で適用前に戻して、レベルを変えて適用し直す） */
+/* プリセットの色域をドキュメントへ適用するステップ（履歴は積まない：
+   呼び出し側が pushUndo 済みであること）。色域の全体設定を機種の値へ
+   切り替え、今の絵を共通処理（convertColorDatas）へ変換指定を渡して
+   その色域へ変換する。変換はこの時点で確定し、見えている絵がそのまま
+   ドキュメントになる（プレビューではない）。以後カラーレベル／
+   コントラストを動かした場合は、プリセット選択中の調整として別途
+   履歴対象で適用される（handlePresetLevelContrast） */
 function applyPresetColorSteps(preset){
   var spec = presetSpec(preset);
   S.colorSpace = (preset.palette || preset.fixedPalette) ? 0 : (preset.cs || 0);
@@ -2239,55 +2208,26 @@ function applyPresetColorSteps(preset){
      切り替えるため、条件なしで buildPalette を呼ぶ */
   if (hexes.length >= 4 || S.paletteMode) buildPalette(hexes.slice(0, 48));
 }
-/* プリセット適用完了トーストの、色まわりの内訳文字列 */
+/* プリセットの色域の内訳文字列（適用トースト・状態表示用） */
 function presetColorDesc(preset){
   if (preset.palette) return '専用' + preset.palette.length + '階調に変換';
   if (preset.rank === 'sgb') return 'パレット ' + selSgbPreset + ' へ階調割り当て変換';
   if (preset.fixedPalette) return '固定54色パレットに吸着・同時' + (preset.colors ? preset.colors + '色' : '制限なし');
   return '色空間' + (preset.cs ? preset.cs + '色' : '制限なし') + '・同時' + (preset.colors ? preset.colors + '色' : '制限なし');
 }
-/* 色空間セレクタの固定パレット・専用階調（pal-*）の表示名 */
-var CS_PALETTE_LABELS = {
-  'pal-gb': 'ゲームボーイ（専用グリーン4階調）',
-  'pal-gbp': 'ゲームボーイポケット（グレー4階調）',
-  'pal-vb': 'バーチャルボーイ（専用赤4階調）',
-  'pal-fc': 'ファミコン（固定54色パレット・同時25色）',
-  'pal-sgb': 'スーパーゲームボーイ（専用4色パレット）',
-  'pal-gbc': 'ゲームボーイカラー（GBソフト用・専用4色パレット）',
-  'pal-ws': 'ワンダースワン（モノクロ8階調）'
-};
-/* 単体変換の表示名。SGB／GBは、選んでいるパレットまで含めた名前に
-   する（プレビュー注記・適用トースト・色域名で共通に使う） */
+/* 色空間セレクタの「制限なし」の補正のみ変換の表示名と指定（spec）。
+   固定パレット・専用階調の単体変換は廃止し、固定パレットは機種
+   プリセット側に一本化した。ここに残るのは、色域は変換せず補正
+   （レベル＋コントラスト）だけを当てる指定だけ */
 function csPaletteDisplayName(key){
   if (key === 'none') return '制限なし（補正のみ）';
-  if (key === 'pal-sgb') return 'スーパーゲームボーイ ' + selSgbCs;
-  if (key === 'pal-gbc'){
-    var nm = gbcPaletteName(selGbcCs);
-    return nm ? ('ゲームボーイカラー ' + nm) : CS_PALETTE_LABELS[key];
-  }
-  return CS_PALETTE_LABELS[key] || '';
+  return '';
 }
-/* 色空間セレクタの固定パレット・専用階調の単体変換の指定（spec）を
-   作る。機種プリセットと違い、サイズ変更は伴わず色だけを変換する。
-   ファミコンの単体変換は、機種プリセットと同じく固定パレットへの
-   吸着＋同時25色までの絞り込みを行う（色味を変えたい場合は、適用後に
-   色パレットを開いて54色の中から選び直す想定）。ディザリングは
-   「ドット化と減色」側の設定をそのまま使う。該当しない値では null */
 function csPaletteSpec(value){
   var q = getQuantOpts();
   /* 「制限なし」の単体変換：色域変換は行わず、補正（レベル＋
      コントラスト）だけを当てる指定を共通処理へ渡す */
   if (value === 'none') return { level: colorLevel, contrast: colorContrast, palette: null, fixedPalette: null, cs: 0, colors: null, correctOnly: true, method: q.method, dither: q.dither };
-  if (value === 'pal-gb') return { level: colorLevel, contrast: colorContrast, palette: GB_PALETTE, fixedPalette: null, cs: 0, colors: null, method: q.method, dither: q.dither };
-  if (value === 'pal-gbp') return { level: colorLevel, contrast: colorContrast, palette: GBP_PALETTE, fixedPalette: null, cs: 0, colors: null, method: q.method, dither: q.dither };
-  if (value === 'pal-vb') return { level: colorLevel, contrast: colorContrast, palette: VB_PALETTE, fixedPalette: null, cs: 0, colors: null, method: q.method, dither: q.dither };
-  if (value === 'pal-ws') return { level: colorLevel, contrast: colorContrast, palette: WS_PALETTE, fixedPalette: null, cs: 0, colors: null, method: q.method, dither: q.dither };
-  if (value === 'pal-fc') return { level: colorLevel, contrast: colorContrast, palette: null, fixedPalette: NES_PALETTE, cs: 0, colors: 25, method: q.method, dither: q.dither };
-  /* SGB／GBは「階調ランク→色の割り当て」形態。パレットは単体変換側の
-     選択（selSgbCs／selGbcCs）から取り、色数は常に4色に決まるため
-     colors は指定しない */
-  if (value === 'pal-sgb') return { level: colorLevel, contrast: colorContrast, palette: null, fixedPalette: null, rankPalette: sgbPaletteById(selSgbCs), cs: 0, colors: null, method: q.method, dither: q.dither };
-  if (value === 'pal-gbc') return { level: colorLevel, contrast: colorContrast, palette: null, fixedPalette: null, rankPalette: gbcPaletteById(selGbcCs), cs: 0, colors: null, method: q.method, dither: q.dither };
   return null;
 }
 /* 色空間（全体設定・全レイヤー共通）：切り替えた瞬間に全フレーム・全レイヤーの
@@ -2295,15 +2235,7 @@ function csPaletteSpec(value){
    ピクセルはそのまま。以後の描画・追加への吸着は effColor と追加処理側で効く */
 $('colorSpaceSel').addEventListener('change', function(e){
   var v = e.target.value;
-  syncCsPaletteSelects();
-  if (v.indexOf('pal-') === 0){
-    /* 固定パレット・専用階調の単体変換：即時には適用せず、機種
-       プリセットと同じ共通プレビューで変換した姿を表示する。
-       確定は「この色変換を適用する」ボタンで行う */
-    previewRequest = { source: 'cs', key: v };
-    updateLevelPreview();
-    return;
-  }
+  if (v === '__palcurrent') return; /* 現在のパレット表示専用の値（選べない） */
   if (v === '0' && !S.paletteMode){
     /* 「制限なし」の単体変換：色域は変換せず、カラーレベルと
        コントラストの補正だけを共通プレビューで表示する（フルカラー
@@ -2327,7 +2259,13 @@ $('colorSpaceSel').addEventListener('change', function(e){
     endLevelPreview();
     pushUndo();
     S.paletteMode = null;
+    /* 色域を手動で解除したら、プリセット選択も外れたことにする
+       （「プリセット選択中＝その色域が有効」の対応を保つため。
+       履歴には解除前の選択ごと積まれているので「戻す」で戻る） */
+    currentPresetKey = null;
+    var pselC = $('presetSel'); if (pselC) pselC.value = '';
     syncColorSpaceUI();
+    syncPresetUI();
     var usedHexes = collectUsedHexes();
     buildPalette(usedHexes.length >= 4 ? usedHexes : defaultPalette);
     toast('パレットモードを解除しました（ピクセルはそのままです）');
@@ -2339,7 +2277,7 @@ $('colorSpaceSel').addEventListener('change', function(e){
      から履歴を積み、色の変換は共通処理へ変換指定（対象の色域＋現在の
      カラーレベル）を渡して行う。レベル補正の後に吸着が当たるため、
      結果は必ず色域の中に収まる。変換はこの時点で確定する。
-     プリセットのプレビュー表示中なら、要求を破棄して先に元の絵へ
+     色変換のプレビュー表示中なら、要求を破棄して先に元の絵へ
      戻してから行う（適用後にレベルを動かしても絵が変わらないように） */
   previewRequest = null;
   endLevelPreview();
@@ -2351,9 +2289,17 @@ $('colorSpaceSel').addEventListener('change', function(e){
   var hadPalMode = !!S.paletteMode;
   S.colorSpace = cs;
   /* ビット段を選んだらビット段側が有効になり、パレットモードは
-     解除される（相互排他・後勝ち） */
+     解除される（相互排他・後勝ち）。プリセットの色域を手動で
+     変えたので、プリセット選択も外れたことにする（色域との対応を
+     保つため。履歴には変更前の選択ごと積まれている） */
   S.paletteMode = null;
+  if (currentPresetKey && PRESETS[currentPresetKey] &&
+      (PRESETS[currentPresetKey].palette || PRESETS[currentPresetKey].fixedPalette || PRESETS[currentPresetKey].rank || (PRESETS[currentPresetKey].cs || 0) !== cs)){
+    currentPresetKey = null;
+    var pselB = $('presetSel'); if (pselB) pselB.value = '';
+  }
   syncColorSpaceUI();
+  syncPresetUI();
   if (hadPalMode){
     var usedHexes2 = collectUsedHexes();
     buildPalette(usedHexes2.length >= 4 ? usedHexes2 : defaultPalette);
@@ -2378,51 +2324,29 @@ $('colorSpaceSel').addEventListener('change', function(e){
   }
   render();
 });
-/* 固定パレット・専用階調の単体変換の確定：プレビュー中の変換を、
+/* 「制限なし（補正のみ）」プレビューの確定：プレビュー中の補正を、
    ここで初めてドキュメントへ適用する。先にプレビューを終了して
-   元の絵へ戻し、履歴を積み、共通処理へ変換指定を渡して変換する。
-   変換はこの時点で確定する。適用したパレットは
-   「現在有効な色域」（パレットモード）として保持し、ビット段の
-   色空間は 0 に戻す（相互排他・後勝ち）。セレクタの表示は
-   syncColorSpaceUI がパレットモードに合わせて pal-* を出すので、
-   「制限なし」を選び直せばモードを解除できる */
+   元の絵へ戻し、履歴を積み、共通処理へ補正だけの指定を渡して適用する。
+   色域は変換せず、パレットモードもビット段の色空間も制限なしのまま。
+   履歴は1回分だけなので、「戻す」1回で戻る。固定パレットの単体変換は
+   廃止済み（機種プリセット側に一本化）なので、確定できるのはこの
+   補正のみ */
 $('btnCsApply').addEventListener('click', function(){
   if (!previewRequest || previewRequest.source !== 'cs') return;
   var key = previewRequest.key;
   var spec = csPaletteSpec(key);
   if (!spec) return;
-  var label = csPaletteDisplayName(key);
   previewRequest = null;
   endLevelPreview();
   pushUndo();
-  if (key === 'none'){
-    /* 「制限なし（補正のみ）」の確定：色域は変換せず、パレット
-       モードもビット段の色空間も制限なしのまま、補正（レベル＋
-       コントラスト）だけを共通処理で適用する。履歴は上の1回分
-       だけなので、「戻す」1回で戻る */
-    S.paletteMode = null;
-    S.colorSpace = 0;
-    var datasN = [];
-    S.frames.forEach(function(fr){ fr.layers.forEach(function(L){ datasN.push(L.data); }); });
-    convertColorDatas(datasN, S.w, S.h, spec, frameGroupsFor(S.frames));
-    syncColorSpaceUI();
-    render();
-    toast('レベルとコントラストの補正だけを適用しました（色域は変換していません。全フレーム・全レイヤー、「戻す」で戻せます）');
-    return;
-  }
-  /* パレットモードの文字列には、選んだパレットのIDまで含める
-     （SGB／GBC。GB／VB／FCは従来どおり pal- の後ろの部分そのまま） */
-  S.paletteMode = key === 'pal-sgb' ? ('sgb:' + selSgbCs)
-    : key === 'pal-gbc' ? ('gbc:' + selGbcCs)
-    : key.slice(4);
+  S.paletteMode = null;
   S.colorSpace = 0;
-  var datas = [];
-  S.frames.forEach(function(fr){ fr.layers.forEach(function(L){ datas.push(L.data); }); });
-  var hexes = convertColorDatas(datas, S.w, S.h, spec, frameGroupsFor(S.frames));
-  buildPalette(hexes.slice(0, 48));
+  var datasN = [];
+  S.frames.forEach(function(fr){ fr.layers.forEach(function(L){ datasN.push(L.data); }); });
+  convertColorDatas(datasN, S.w, S.h, spec, frameGroupsFor(S.frames));
   syncColorSpaceUI();
   render();
-  toast(label + 'に変換しました。以後、選ぶ色もこのパレットの色に寄ります（全フレーム・全レイヤー、「戻す」で戻せます）');
+  toast('レベルとコントラストの補正だけを適用しました（色域は変換していません。全フレーム・全レイヤー、「戻す」で戻せます）');
 });
 $('alphaRange').addEventListener('input', function(){ var c = S.color.slice(); c[3] = +$('alphaRange').value; setColor(c); });
 $('swTrans').addEventListener('click', function(){ setColor([0,0,0,0]); toast('透明ピクセルを選択しました。ペン／塗りつぶしで透明を打てます'); });
@@ -2934,41 +2858,34 @@ function applyOffsetResize(nw, nh, dx, dy){
   S.cursor.x = clamp(S.cursor.x, 0, nw - 1); S.cursor.y = clamp(S.cursor.y, 0, nh - 1);
   $('inW').value = nw; $('inH').value = nh;
 }
-/* サイズ変更の確定処理。履歴はここで1回だけ積むので、プリセット適用
-   （サイズ変更＋色空間＋減色）も「戻す」1回で全体が戻る */
+/* サイズ変更の確定処理。履歴はここで1回だけ積むので、解像度変更も
+   「戻す」1回で全体が戻る。色域はここでは触らない（プリセットの色域は
+   機種を選んだ時点で別に適用済みで、この確定は解像度だけを変える） */
 function commitCanvasResize(nw, nh, dx, dy, preset){
   if (S.playing) stopPlay();
   pushUndo();
   applyOffsetResize(nw, nh, dx, dy);
+  fitZoom();
+  syncPresetUI();
   if (preset){
-    applyPresetColorSteps(preset);
-    fitZoom();
-    toast(preset.name + 'プリセットを適用しました（' + nw + '×' + nh + '・' + presetColorDesc(preset) + '、「戻す」で戻せます）');
+    toast(preset.name + 'の解像度に合わせました（' + nw + '×' + nh + '、「戻す」で戻せます）');
   } else {
-    fitZoom();
     toast('サイズを ' + nw + '×' + nh + ' に変更しました（余白の追加／切り落としで合わせました）');
   }
 }
 /* サイズ変更の入口（手動・プリセット共通）。比率が変わる場合は
-   クロップ画面で位置を決めてから確定する */
+   クロップ画面で位置を決めてから確定する。切り取り画面は位置決め
+   専用で、今の絵（プリセット選択時は色域適用済みの絵）をそのまま出す */
 function requestCanvasResize(nw, nh, preset){
   if (S.playing) stopPlay();
   if (nw * S.h !== nh * S.w){
-    /* プリセット適用のときは、切り取り画面でも色域変換後の姿を
-       プレビュー表示する（表示用の複製にだけ変換をかけ、確定時は
-       従来どおり切り取った結果へ変換をかけ直す）。手動のサイズ変更
-       では色域変換は無いので、従来どおり今の絵そのままを出す */
     var src = null;
     if (preset){
       src = {
         w: S.w, h: S.h,
-        canvas: flattenFrameWH(buildPresetPreviewFrame(curFrame(), S.w, S.h, preset), S.w, S.h),
-        /* 切り取り画面の中でもカラーレベルを調整できるよう、変換前の
-           今の絵とプリセット自体も渡す（全機種共通） */
-        levelFrame: curFrame(),
-        levelPreset: preset,
-        status: '現在 ' + S.w + '×' + S.h + '・' + preset.name + 'の色域（' + presetColorDesc(preset) + '）に変換・枠 ' + nw + '×' + nh,
-        info: '今の絵を色域変換した姿でプレビュー表示しています。新しいキャンバスの枠を、今の絵の上で動かして残す範囲を決めてください。枠は、プレビューのドラッグ・下の矢印ボタン・PCの矢印キーで動かせます。枠の外側は切り落とされ、枠が絵より大きい部分は透明の余白になります。'
+        canvas: flattenCanvas(curFrame()),
+        status: '現在 ' + S.w + '×' + S.h + ' → ' + preset.name + 'の解像度 ' + nw + '×' + nh,
+        info: '新しいキャンバスの枠を、今の絵の上で動かして残す範囲を決めてください。枠は、プレビューのドラッグ・下の矢印ボタン・PCの矢印キーで動かせます。枠の外側は切り落とされ、枠が絵より大きい部分は透明の余白になります。色はこの画面では変えません。'
       };
     }
     openCrop(nw, nh, function(dx, dy){ commitCanvasResize(nw, nh, dx, dy, preset); }, src);
@@ -2982,7 +2899,7 @@ $('btnResize').addEventListener('click', function(){
      （画像全体をリサンプルで拡縮し、クロップ画面は出さない）。
      「パレットを固定する」チェックは「絵を拡縮する」のときにだけ効く。
      サイズ入力は共通のキャンバスサイズ欄をそのまま使う */
-  /* プリセットの色域プレビュー表示中なら、先に元の絵へ戻してから
+  /* 色変換のプレビュー表示中なら、先に元の絵へ戻してから
      手動のサイズ変更に入る（プレビューの色が切り取り画面や確定結果に
      混ざらないようにするため） */
   endLevelPreview();
@@ -2995,20 +2912,22 @@ $('btnResize').addEventListener('click', function(){
 });
 
 /* ================= 機種プリセット =================
-   解像度・同時色数・色空間をセットで当てる。サイズの合わせ方は
-   「切り取り・余白で合わせる」チェックで切り替える：
-   ・OFF（初期値）＝等倍率拡縮＋切り落とし。絵を縦横同じ倍率で、
+   色域と解像度は分かれている：
+   ・色域は、機種を選んだ時点で即時に有効になる（現在の絵もその色域へ
+     変換される。プレビューという状態は持たない）
+   ・解像度は「解像度を合わせる」ボタンを押したときだけ変わる。
+     サイズの合わせ方は「切り取り・余白で合わせる」チェックで切り替える：
+     OFF（初期値）＝等倍率拡縮＋切り落とし。絵を縦横同じ倍率で、
      プリセットの枠を覆う大きさまで拡縮し（倍率は
      max(目標幅/元幅, 目標高さ/元高さ)、リサンプルは多数決）、
      はみ出した分を切り落として目標サイズにする。はみ出しがある場合は
      クロップ画面で切り取り位置を決める（対象は拡縮後の絵、初期位置は
      中央）。はみ出しが無い（アスペクト比が一致する）場合はクロップ
-     画面を出さず即適用する。その後に色空間の切り替えと同時色数への
-     減色を行う。クロップ画面のキャンセルで適用全体を中止する
-   ・ON＝従来方式。サイズ変更と同じ入口（requestCanvasResize）を通り、
+     画面を出さず即確定する
+     ON＝サイズ変更と同じ入口（requestCanvasResize）を通り、
      等倍率拡縮なしで余白追加／切り落としで合わせ、比率が変われば
      クロップ画面が出る
-   どちらの方式でも、適用全体が履歴1回分で戻せる */
+   色域の適用も解像度変更も、それぞれ履歴1回分で戻せる */
 /* 全22機種。選択欄（optgroup）と同じくメーカー別にまとめ、各メーカー内は
    発売年順に並べる。colors が null の機種は同時色数の減色を行わず、
    cs が 0 の機種は色空間の制限をしない。palette を持つ機種（ゲームボーイ／
@@ -3164,24 +3083,10 @@ function flattenFrameWH(frame, w, h){
   }
   return c;
 }
-/* 切り取り画面のプレビュー用：フレームの複製に、プリセットの色域変換を
-   かけたものを返す。元のフレーム（ドキュメントや拡縮後の絵）には触らない。
-   切り取り位置を決める間、拡縮した姿だけでなく色域変換後の色も見て
-   判断できるようにするための表示専用の複製 */
-function buildPresetPreviewFrame(frame, w, h, preset){
-  var datas = frame.layers.map(function(L){ return L.data.slice(); });
-  applyPresetColorsToDatas(datas, w, h, preset, frameGroupsFor([frame]));
-  return {
-    layers: frame.layers.map(function(L, i){
-      return { data: datas[i], visible: L.visible, opacity: L.opacity, name: L.name };
-    }),
-    active: frame.active
-  };
-}
-/* プリセット適用（拡縮方式）の確定処理。拡縮後の絵（sw×sh）をオフセット
-   （dx, dy）で切り取って目標サイズにし、続けて色空間の切り替えと
-   同時色数への減色を行う。履歴はここで1回だけ積むので、適用全体が
-   「戻す」1回で戻る */
+/* 「解像度を合わせる」（拡縮方式）の確定処理。拡縮後の絵（sw×sh）を
+   オフセット（dx, dy）で切り取って目標サイズにする。色域はここでは
+   触らない（機種を選んだ時点で適用済み）。履歴はここで1回だけ積む
+   ので、解像度変更が「戻す」1回で戻る */
 function commitPresetScaled(preset, scaledFrames, sw, sh, dx, dy){
   if (S.playing) stopPlay();
   pushUndo();
@@ -3195,20 +3100,20 @@ function commitPresetScaled(preset, scaledFrames, sw, sh, dx, dy){
   S.w = nw; S.h = nh; S.frames = nf;
   S.cursor.x = clamp(S.cursor.x, 0, nw - 1); S.cursor.y = clamp(S.cursor.y, 0, nh - 1);
   $('inW').value = nw; $('inH').value = nh;
-  applyPresetColorSteps(preset);
   renderLayerPanel();
   fitZoom();
-  toast(preset.name + 'プリセットを適用しました（' + nw + '×' + nh + '・' + presetColorDesc(preset) + '、「戻す」で戻せます）');
+  syncPresetUI();
+  toast(preset.name + 'の解像度に合わせました（' + nw + '×' + nh + '、「戻す」で戻せます）');
 }
-/* プリセット適用（拡縮方式）：絵を縦横同じ倍率で、プリセットの枠を
+/* 「解像度を合わせる」（拡縮方式）：絵を縦横同じ倍率で、プリセットの枠を
    覆う大きさまで多数決リサンプルで拡縮する。目標サイズへそのまま
    リサンプルするとアスペクト比が違うときに絵が潰れる／伸びるため、
    倍率は max(目標幅/元幅, 目標高さ/元高さ) とし、拡縮後の大きさは
    両辺とも目標以上になる。はみ出しが無ければそのまま確定し、
    はみ出しがあれば拡縮後の絵を対象にクロップ画面で切り取り位置を
-   決めてから確定する（キャンセルで適用全体を中止する）。
+   決めてから確定する（キャンセルで解像度変更全体を中止する）。
    リサンプルは手動の「絵を拡縮する」と同じ majorityResampleData を使う
-   （パレット固定チェックには影響されない） */
+   （パレット固定チェックには影響されない）。色は変えない */
 function applyPresetScale(preset){
   if (S.playing) stopPlay();
   var nw = preset.w, nh = preset.h;
@@ -3228,38 +3133,85 @@ function applyPresetScale(preset){
     commitPresetScaled(preset, scaled, sw, sh, 0, 0);
     return;
   }
-  /* 切り取り画面では、拡縮後の絵にプリセットの色域変換までかけた姿を
-     プレビュー表示する（色域変換は表示用の複製にだけかけ、確定時は
-     従来どおり切り取った範囲へ変換をかけ直す） */
+  /* 切り取り画面は位置決め専用：拡縮後の絵をそのまま出す（色域は
+     機種を選んだ時点で適用済みで、この画面では色を変えない） */
   var src = {
     w: sw, h: sh,
-    canvas: flattenFrameWH(buildPresetPreviewFrame(scaled[S.cur], sw, sh, preset), sw, sh),
-    /* 切り取り画面の中でもカラーレベルを調整できるよう、変換前の
-       拡縮後の絵とプリセット自体も渡す（全機種共通） */
-    levelFrame: scaled[S.cur],
-    levelPreset: preset,
-    status: '現在 ' + oldW + '×' + oldH + ' → 拡縮後 ' + sw + '×' + sh + '・' + preset.name + 'の色域（' + presetColorDesc(preset) + '）に変換・枠 ' + nw + '×' + nh,
-    info: '縦横同じ倍率で拡縮した絵を、色域変換した姿でプレビュー表示しています。新しいキャンバスの枠を、拡縮後の絵の上で動かして残す範囲を決めてください。枠は、プレビューのドラッグ・下の矢印ボタン・PCの矢印キーで動かせます。枠の外側は切り落とされます。'
+    canvas: flattenFrameWH(scaled[S.cur], sw, sh),
+    status: '現在 ' + oldW + '×' + oldH + ' → 拡縮後 ' + sw + '×' + sh + ' → ' + preset.name + 'の解像度 ' + nw + '×' + nh,
+    info: '縦横同じ倍率で拡縮した絵です。新しいキャンバスの枠を、拡縮後の絵の上で動かして残す範囲を決めてください。枠は、プレビューのドラッグ・下の矢印ボタン・PCの矢印キーで動かせます。枠の外側は切り落とされます。色はこの画面では変えません。'
   };
   openCrop(nw, nh, function(dx, dy){ commitPresetScaled(preset, scaled, sw, sh, dx, dy); }, src);
 }
-$('presetSel').addEventListener('change', function(){
-  /* 機種を切り替えたら前のプレビューは終了して元の絵へ戻し、選んだ
-     機種の色域プレビューをその場で始める（全機種対象。サイズ変更を
-     伴わない場合でもプレビューは出る）。機種を未選択に戻した場合は
-     プレビューが終了するだけになる。プレビューの実体は共通の仕組み
-     （updateLevelPreview）が要求（previewRequest）を見て出し分ける */
-  var key = $('presetSel').value;
-  /* スーパーゲームボーイを選んでいる間だけ、パレット選択欄を出す */
+/* プリセット欄の状態表示（SGBパレット欄の出し分けと、有効な色域の
+   注記）を現在の状態に合わせる。Undo／Redo・解像度変更・プロジェクト
+   読み込みの後にも呼ばれる */
+function syncPresetUI(){
+  var key = currentPresetKey || '';
   var sw = $('presetSgbWrap');
   if (sw) sw.style.display = key === 'sgb' ? '' : 'none';
-  previewRequest = key ? { source: 'preset', key: key } : null;
-  updateLevelPreview();
+  var el = $('presetActiveNote');
+  if (!el) return;
+  var p = key ? PRESETS[key] : null;
+  if (p){
+    el.style.display = '';
+    el.textContent = p.name + 'の色域（' + presetColorDesc(p) + '）が有効です。このまま描く色も、書き出す画像も、この色域に合います。カラーレベル／コントラストを動かすと、今の絵へ補正がそのまま適用されます（「戻す」で戻せます）。解像度は現在 ' + S.w + '×' + S.h + ' です。';
+  } else {
+    el.style.display = 'none';
+  }
+}
+/* その機種の色域が今のドキュメントに有効かどうか（プリセット選択を
+   外したときに、色域も一緒に解除してよいかの判定に使う） */
+function presetGamutActive(p){
+  if (!p) return false;
+  if (p.palette || p.fixedPalette || p.rank) return !!S.paletteMode;
+  return (S.colorSpace || 0) === (p.cs || 0) && !S.paletteMode;
+}
+$('presetSel').addEventListener('change', function(){
+  var key = $('presetSel').value;
+  /* 色変換のプレビュー（補正のみ／減色）が立っていたら、先に元の絵へ
+     戻してから色域を適用する（プレビューの色が混ざらないように） */
+  previewRequest = null;
+  endLevelPreview();
+  if (!key){
+    /* 選択を外す：その機種の色域が有効なままなら、色域だけを解除する
+       （絵はそのまま。履歴1回分で戻せる）。色域が手動で変えられていた
+       場合は、そちらには触らない */
+    var prev = currentPresetKey ? PRESETS[currentPresetKey] : null;
+    if (prev && presetGamutActive(prev)){
+      if (S.playing) stopPlay();
+      /* 履歴のスナップショットは解除前の状態（プリセット選択・色域
+         込み）で積むので、currentPresetKey は pushUndo の後に外す */
+      pushUndo();
+      currentPresetKey = null;
+      S.paletteMode = null;
+      S.colorSpace = 0;
+      syncColorSpaceUI();
+      var usedHexes = collectUsedHexes();
+      buildPalette(usedHexes.length >= 4 ? usedHexes : defaultPalette);
+      toast(prev.name + 'の色域を解除しました（絵はそのままです）');
+    }
+    currentPresetKey = null;
+    syncPresetUI();
+    render();
+    return;
+  }
+  var p = PRESETS[key];
+  if (!p) return;
+  if (S.playing) stopPlay();
+  /* 機種を選んだ時点で色域を即時に適用する：履歴を1回積み、色域の
+     全体設定を切り替えて、今の絵をその色域へ変換する。解像度は
+     変わらない（解像度は「解像度を合わせる」ボタン専用）。
+     変換には現在のカラーレベル／コントラストの値を使う */
+  pushUndo();
+  currentPresetKey = key;
+  applyPresetColorSteps(p);
+  syncPresetUI();
+  render();
+  toast(p.name + 'の色域を適用しました（' + presetColorDesc(p) + '）。解像度は ' + S.w + '×' + S.h + ' のままです（「戻す」で戻せます）');
 });
-/* パレット選択欄（SGBプリセット欄／SGB単体変換欄／GBC単体変換欄）へ
-   選択肢を投入する。SGBはメニュー番号（1〜4）のグループで分け、
-   GBCは日本語名で出す。選び直すと、表示中のプレビューはその場で
-   作り直される（プレビューが無いときは何もしない） */
+/* パレット選択欄（SGBプリセット欄）へ選択肢を投入する。SGBは
+   メニュー番号（1〜4）のグループで分ける */
 function fillSgbSelect(sel){
   if (!sel) return;
   var groups = {};
@@ -3277,37 +3229,96 @@ function fillSgbSelect(sel){
   });
 }
 fillSgbSelect($('presetSgbSel'));
-fillSgbSelect($('csSgbSel'));
-(function(){
-  var sel = $('csGbcSel');
-  if (!sel) return;
-  GBC_PALETTES.forEach(function(p){
-    var o = document.createElement('option');
-    o.value = p.id; o.textContent = p.nameJa;
-    sel.appendChild(o);
-  });
-})();
 $('presetSgbSel').addEventListener('change', function(){
   selSgbPreset = this.value;
-  if (levelPreview && previewRequest && previewRequest.source === 'preset' && previewRequest.key === 'sgb') updateLevelPreview();
-});
-$('csSgbSel').addEventListener('change', function(){
-  selSgbCs = this.value;
-  if (levelPreview && previewRequest && previewRequest.source === 'cs' && previewRequest.key === 'pal-sgb') updateLevelPreview();
-});
-$('csGbcSel').addEventListener('change', function(){
-  selGbcCs = this.value;
-  if (levelPreview && previewRequest && previewRequest.source === 'cs' && previewRequest.key === 'pal-gbc') updateLevelPreview();
+  /* SGBの色域が有効な間にパレットを選び直したら、新しいパレットを
+     今の絵へそのまま適用する（履歴1回分で戻せる） */
+  if (currentPresetKey === 'sgb' && PRESETS.sgb){
+    if (S.playing) stopPlay();
+    pushUndo();
+    currentPresetKey = 'sgb';
+    applyPresetColorSteps(PRESETS.sgb);
+    syncPresetUI();
+    render();
+  }
 });
 /* カラーレベルのスライダーは全機種・全変換共通で、値は1つだけ。
-   表示箇所（プリセット欄／ドット化と減色欄／切り取り画面）はすべて
-   同期する。レベルは「変換前に決める値」で、値はいつでも保持し、
-   次の変換に効かせる。適用済みの絵は、適用後にスライダーを動かして
-   も変わらない（変換結果を直したいときは「戻す」で適用前に戻し、
-   レベルを変えて適用し直す）。
-   適用前は、機種を選んでいる間、動かすたびに今の絵をそのレベルで
-   変換した姿をプレビュー表示する（非破壊・履歴は消費しない。
-   プレビューをやめると元の絵の表示に戻る） */
+   表示箇所（プリセット欄／ドット化と減色欄）はすべて同期する。
+   扱いは状態で分かれる：
+   ・機種プリセット選択中（色域が有効）：動かすと、その調整が今の絵へ
+     そのまま適用され、色域も維持される。この調整は履歴の対象で、
+     「戻す」で絵と値が調整前に戻り、「進む」で再適用される
+     （handlePresetLevelContrast。ジェスチャ方式で履歴は調整ごとに1回）
+   ・それ以外：レベルは「変換前に決める値」として保持し、次の変換に
+     効かせる。適用済みの絵はスライダーを動かしても変わらない。
+     変換先の選択がある間は、動かすたびに変換した姿をプレビュー
+     表示する（非破壊・履歴は消費しない） */
+/* プリセット選択中のレベル／コントラスト調整で使う、現在の色域の
+   変換指定（spec）。補正量はジェスチャ開始時点からの相対量（dl／dc）
+   で受け取り、色域の部分は現在有効な色域（パレットモード優先、
+   次に選択中プリセット、それも無ければビット段の色空間）から作る */
+function activeGamutSpec(dl, dc){
+  var q = getQuantOpts();
+  if (S.paletteMode){
+    var mode = S.paletteMode;
+    if (mode === 'gb') return { level: dl, contrast: dc, palette: GB_PALETTE, fixedPalette: null, cs: 0, colors: null, method: q.method, dither: q.dither };
+    if (mode === 'gbp') return { level: dl, contrast: dc, palette: GBP_PALETTE, fixedPalette: null, cs: 0, colors: null, method: q.method, dither: q.dither };
+    if (mode === 'vb') return { level: dl, contrast: dc, palette: VB_PALETTE, fixedPalette: null, cs: 0, colors: null, method: q.method, dither: q.dither };
+    if (mode === 'ws') return { level: dl, contrast: dc, palette: WS_PALETTE, fixedPalette: null, cs: 0, colors: null, method: q.method, dither: q.dither };
+    if (mode === 'fc') return { level: dl, contrast: dc, palette: null, fixedPalette: NES_PALETTE, cs: 0, colors: 25, method: q.method, dither: q.dither };
+    if (mode.indexOf('sgb:') === 0) return { level: dl, contrast: dc, palette: null, fixedPalette: null, rankPalette: sgbPaletteById(mode.slice(4)), cs: 0, colors: null, method: q.method, dither: q.dither };
+    if (mode.indexOf('gbc:') === 0) return { level: dl, contrast: dc, palette: null, fixedPalette: null, rankPalette: gbcPaletteById(mode.slice(4)), cs: 0, colors: null, method: q.method, dither: q.dither };
+    var pal = paletteForMode(mode);
+    if (pal) return { level: dl, contrast: dc, palette: null, fixedPalette: pal, cs: 0, colors: null, method: q.method, dither: q.dither };
+  }
+  if (currentPresetKey && PRESETS[currentPresetKey]){
+    var spec = presetSpec(PRESETS[currentPresetKey]);
+    spec.level = dl; spec.contrast = dc;
+    return spec;
+  }
+  return { level: dl, contrast: dc, palette: null, fixedPalette: null, cs: S.colorSpace || 0, colors: null, correctOnly: !(S.colorSpace || 0), method: q.method, dither: q.dither };
+}
+/* プリセット選択中のレベル／コントラスト調整（履歴対象）。
+   最初の入力で、調整前の状態（ピクセル＋レベル／コントラスト＋色域）を
+   履歴に1回だけ積み、開始時点のピクセルを保持する。以後の入力では、
+   保持したピクセルへ「開始時点からの相対補正＋現在の色域」をかけ直す
+   ので、スライダーを往復させれば開始時点の絵に戻る。スナップショット
+   にはレベル／コントラストも含まれるため、「戻す」で絵と値が一緒に
+   戻り、「進む」で調整後の絵と値が一緒に再適用される */
+function handlePresetLevelContrast(kind, v){
+  if (!levelGesture){
+    /* 色変換プレビューが立っていたら先に戻す（履歴にはプレビューの
+       姿ではなく元の絵が積まれる） */
+    previewRequest = null;
+    pushUndo();
+    levelGesture = {
+      base: S.frames.map(function(fr){
+        return fr.layers.map(function(L){ return L.data.slice(); });
+      }),
+      startLevel: colorLevel, startContrast: colorContrast
+    };
+  }
+  if (kind === 'level'){ colorLevel = +v; syncLevelSliders(); }
+  else { colorContrast = +v; syncContrastSliders(); }
+  var g = levelGesture;
+  S.frames.forEach(function(fr, fi){
+    fr.layers.forEach(function(L, li){
+      var src = g.base[fi] && g.base[fi][li];
+      if (src && src.length === L.data.length) L.data = src.slice();
+    });
+  });
+  var spec = activeGamutSpec(colorLevel - g.startLevel, colorContrast - g.startContrast);
+  var datas = [];
+  S.frames.forEach(function(fr){ fr.layers.forEach(function(L){ datas.push(L.data); }); });
+  convertColorDatas(datas, S.w, S.h, spec, frameGroupsFor(S.frames));
+  render();
+}
+/* スライダーの確定（change）でジェスチャを終える。次に動かしたときは
+   新しいジェスチャとして、履歴がもう1回積まれる */
+['colorLevel', 'reduceLevel', 'colorContrast', 'reduceContrast'].forEach(function(id){
+  var el = $(id);
+  if (el) el.addEventListener('change', function(){ levelGesture = null; });
+});
 /* 色域が制限なし（フルカラー：ビット段の色空間もパレットモードも
    無効）の状態では、変換先の選択が無くても、レベル／コントラストを
    動かした時点で「補正のみ」のプレビューを始める（スライダーが
@@ -3356,6 +3367,8 @@ function refreshReducePreview(){
   }
 }
 function handleLevelChange(v, fromReduce){
+  /* プリセット選択中は、プレビューではなく履歴対象の実適用にする */
+  if (currentPresetKey && PRESETS[currentPresetKey]){ handlePresetLevelContrast('level', v); return; }
   colorLevel = +v;
   syncLevelSliders();
   /* 減色欄のスライダーから動かした場合は、色数が選ばれていれば
@@ -3367,9 +3380,10 @@ function handleLevelChange(v, fromReduce){
 $('colorLevel').addEventListener('input', function(e){ handleLevelChange(e.target.value); });
 $('reduceLevel').addEventListener('input', function(e){ handleLevelChange(e.target.value, true); });
 /* コントラストのスライダーもレベルと同じ扱い：全変換共通の単一の値を
-   3か所で同期し、変換前に決める値として保持する。適用前はプレビューが
-   その場で追随し、適用済みの絵は変わらない */
+   同期し、プリセット選択中は履歴対象の実適用、それ以外は変換前に
+   決める値として保持し、プレビューがその場で追随する */
 function handleContrastChange(v, fromReduce){
+  if (currentPresetKey && PRESETS[currentPresetKey]){ handlePresetLevelContrast('contrast', v); return; }
   colorContrast = +v;
   syncContrastSliders();
   if (fromReduce && getImpColorCount() > 0) maybeStartReducePreview();
@@ -3396,17 +3410,12 @@ $('impMethod').addEventListener('change', handleQuantOptsChange);
 $('btnPreset').addEventListener('click', function(){
   var p = PRESETS[$('presetSel').value];
   if (!p){ toast('機種プリセットを選んでください'); return; }
-  /* プレビュー中なら、先に元の絵へ戻してから通常の適用フロー（サイズ
-     変更・切り取り画面を含む）を通す。レベルの現在値は colorLevel に
-     保持されているので、確定時にはプレビューと同じレベルで適用される。
-     プレビューの要求はここで破棄する（適用後にレベルを動かしても、
-     適用済みの絵へプレビューが被らないようにするため）。単体変換の
-     プレビュー中だった場合は、セレクタの表示も現在の色空間へ戻す */
-  endLevelPreview();
-  if (previewRequest && previewRequest.source === 'cs'){
-    syncColorSpaceUI();
-  }
+  /* このボタンは解像度専用：色域は機種を選んだ時点で適用済みで、
+     ここでは色に一切触らない。色変換のプレビュー表示中なら、先に
+     元の絵へ戻してから解像度変更のフロー（切り取り画面を含む）を通す */
+  if (S.w === p.w && S.h === p.h){ toast('すでに ' + p.name + 'の解像度（' + p.w + '×' + p.h + '）です'); return; }
   previewRequest = null;
+  endLevelPreview();
   var cropEl = $('presetCropPad');
   if (cropEl && cropEl.checked){
     requestCanvasResize(p.w, p.h, p);
@@ -3434,12 +3443,6 @@ function openCrop(nw, nh, onOk, src){
   cropState = {
     nw: nw, nh: nh, ow: ow, oh: oh, onOk: onOk,
     srcCanvas: src ? src.canvas : null,
-    /* 機種プリセットのときだけ渡される、カラーレベル調整用の材料
-       （全機種共通）。levelFrame は変換前の絵（フレーム）、levelPreset
-       はその機種。両方あるときだけ画面内にカラーレベルのスライダーを
-       出し、動かすたびに levelFrame からプレビューを作り直す */
-    levelFrame: src ? (src.levelFrame || null) : null,
-    levelPreset: src ? (src.levelPreset || null) : null,
     dx: Math.round((nw - ow) / 2), dy: Math.round((nh - oh) / 2),
     dxMin: dxMin, dxMax: dxMax, dyMin: dyMin, dyMax: dyMax,
     wx0: Math.min(0, -dxMax), wy0: Math.min(0, -dyMax),
@@ -3455,18 +3458,8 @@ function openCrop(nw, nh, onOk, src){
     '現在 ' + ow + '×' + oh + ' → 新しいキャンバス ' + nw + '×' + nh;
   $('cropHelp').textContent = (src && src.info) ? src.info :
     '新しいキャンバスの枠を、今の絵の上で動かして残す範囲を決めてください。枠は、プレビューのドラッグ・下の矢印ボタン・PCの矢印キーで動かせます。枠の外側は切り落とされ、枠が絵より大きい部分は透明の余白になります。';
-  /* カラーレベルとコントラストのスライダーは、機種プリセットの材料が
-     渡されたときだけ出す。値は変換パネル側のスライダーと共有する
-     colorLevel／colorContrast の現在値に合わせる（開くたびに同期する
-     ので、前回この画面やパネルで動かした値がそのまま初期値になる） */
-  var clw = $('cropLevelWrap');
-  if (cropState.levelFrame && cropState.levelPreset){
-    clw.style.display = '';
-    $('cropLevel').value = colorLevel;
-    $('cropContrast').value = colorContrast;
-  } else {
-    clw.style.display = 'none';
-  }
+  /* この画面は位置決め専用（カラーレベル／コントラストの調整は
+     変換パネル側で行う） */
   openModal('cropModal');
   drawCrop();
 }
@@ -3546,34 +3539,8 @@ $('cropOk').addEventListener('click', function(){
   cs.onOk(cs.dx, cs.dy);
 });
 $('cropCancel').addEventListener('click', function(){ cropState = null; closeModals(); });
-/* 切り取り画面内のカラーレベル：値を colorLevel（変換パネル側の
-   スライダーと共有）へ書き戻し、保持しておいた変換前の絵から
-   プレビューを作り直してその場で表示する。確定処理（commitPresetScaled
-   ／commitCanvasResize）は colorLevel の現在値で変換し直すので、
-   ここで決めたレベルがそのまま適用結果に効く。キャンセルした場合は
-   適用自体が無くなるが、レベル値だけはパネル側にも残る（パネル側の
-   スライダーを動かしただけのときと同じ扱い） */
-$('cropLevel').addEventListener('input', function(e){
-  colorLevel = +e.target.value;
-  syncLevelSliders();
-  if (!cropState || !cropState.levelFrame || !cropState.levelPreset) return;
-  cropState.srcCanvas = flattenFrameWH(
-    buildPresetPreviewFrame(cropState.levelFrame, cropState.ow, cropState.oh, cropState.levelPreset),
-    cropState.ow, cropState.oh);
-  drawCrop();
-});
-/* 切り取り画面内のコントラストもレベルと同じ扱い：共有値へ書き戻し、
-   プレビューを作り直す。確定処理は現在の共有値で変換し直すので、
-   ここで決めたコントラストがそのまま適用結果に効く */
-$('cropContrast').addEventListener('input', function(e){
-  colorContrast = +e.target.value;
-  syncContrastSliders();
-  if (!cropState || !cropState.levelFrame || !cropState.levelPreset) return;
-  cropState.srcCanvas = flattenFrameWH(
-    buildPresetPreviewFrame(cropState.levelFrame, cropState.ow, cropState.oh, cropState.levelPreset),
-    cropState.ow, cropState.oh);
-  drawCrop();
-});
+/* 切り取り画面は位置決め専用：カラーレベル／コントラストのスライダーは
+   置かない（調整は変換パネルのプリセット欄／減色欄で行う） */
 
 /* ================= パレット固定でサイズ変更（変換パネルのチェックボックス） =================
    減色とは逆で、パレットは「作る」ものではなく「固定する」ものです。
@@ -3715,6 +3682,7 @@ function paletteLockedResize(wIn, hIn){
   $('inW').value = nw; $('inH').value = nh;
   renderLayerPanel();
   fitZoom();
+  syncPresetUI();
   toast('絵で使われている ' + palette.length + ' 色を固定したまま、サイズを ' + nw + '×' + nh + ' に変更しました（補間なしのドット単位で変換していますので、にじみのないくっきりした結果になります。「戻す」で戻せます）');
 }
 
@@ -3778,6 +3746,7 @@ function scaleResize(nw, nh){
   $('inW').value = nw; $('inH').value = nh;
   renderLayerPanel();
   fitZoom();
+  syncPresetUI();
   toast('絵全体を ' + nw + '×' + nh + ' に拡縮しました（「戻す」で戻せます）');
 }
 
@@ -4959,8 +4928,8 @@ function shareOrDownload(blob, filename){
   var hint = $('saveHint');
   if (isImg){
     hint.textContent = IS_IOS
-      ? 'プレビューを長押しで保存できます。'
-      : 'プレビューを長押し（PCでは右クリック）でも保存できます。';
+      ? '長押しで保存できます。'
+      : '長押し（PCでは右クリック）で保存できます。';
     hint.style.display = '';
   } else if (mobileSave){
     hint.textContent = '「保存」を押して、開いた画面の「"ファイル"に保存」を選ぶとファイルへ保存できます。';
@@ -5505,6 +5474,8 @@ function currentEditorState(){
   return {
     colorLevel: colorLevel,
     colorContrast: colorContrast,
+    presetKey: currentPresetKey || null,
+    sgbPreset: selSgbPreset,
     quantMethod: $('impMethod').value,
     quantDither: $('impDither').value,
     colorCount: $('impColors').value,
@@ -5533,6 +5504,16 @@ function restoreEditorState(proj){
     colorContrast = 0;
   }
   syncContrastSliders();
+  /* 機種プリセットの選択（色域の持ち主）も復元する。項目の無い旧形式
+     では選択なしにする（色域そのものは colorSpace／paletteMode 側で
+     復元済みだが、持ち主の無い色域はプリセット選択とは扱わない） */
+  currentPresetKey = (typeof proj.presetKey === 'string' && PRESETS[proj.presetKey]) ? proj.presetKey : null;
+  var pselP = $('presetSel'); if (pselP) pselP.value = currentPresetKey || '';
+  if (typeof proj.sgbPreset === 'string' && sgbPaletteById(proj.sgbPreset)){
+    selSgbPreset = proj.sgbPreset;
+    var psgbP = $('presetSgbSel'); if (psgbP) psgbP.value = selSgbPreset;
+  }
+  syncPresetUI();
   if (['area', 'balance', 'smooth'].indexOf(proj.quantMethod) >= 0) $('impMethod').value = proj.quantMethod;
   if (['none', 'fs', 'atkinson'].indexOf(proj.quantDither) >= 0) $('impDither').value = proj.quantDither;
   if (typeof proj.colorCountCustom === 'number' && isFinite(proj.colorCountCustom)){
@@ -5615,6 +5596,9 @@ $('fileProject').addEventListener('change', function(){
 $('pjNew').addEventListener('click', function(){
   closeModals(); stopPlay();
   S.frames = [makeFrame()]; S.cur = 0; S.colorSpace = 0; S.paletteMode = null; syncColorSpaceUI();
+  currentPresetKey = null;
+  var pselN = $('presetSel'); if (pselN) pselN.value = '';
+  syncPresetUI();
   clearUndoStacks(); renderLayerPanel(); render();
   toast('新規プロジェクトを作成しました');
 });
