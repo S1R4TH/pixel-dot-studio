@@ -382,6 +382,20 @@
   #hotBar .dpad{grid-template-columns:repeat(3,44px); grid-template-rows:repeat(3,44px);}
   #hotBtns{display:flex; flex-direction:column; gap:8px; min-width:148px;}
   #hotBtns button{min-height:44px;}
+  /* ---------- レイヤー移動モードのバー ----------
+     レイヤーパネルの「移動」を押すと、ステージ上部にこのバーが出る。
+     ステージ全体を覆わず（キャンバスのドラッグと十字キーをそのまま
+     使うため）、対象レイヤー名・現在の移動量・
+     決定／キャンセルだけを1つのバーに収める */
+  #lmBar{position:absolute; top:8px; left:50%; transform:translateX(-50%); z-index:40;
+    display:none; align-items:center; justify-content:center; gap:8px 12px; flex-wrap:wrap;
+    max-width:96%; background:var(--panel); border:1px solid var(--line); border-radius:12px;
+    padding:8px 10px; box-shadow:var(--shadow);}
+  #lmBar.open{display:flex;}
+  #lmTitle{font-size:13px; font-weight:700; white-space:nowrap;}
+  #lmOffset{font-family:ui-monospace,Menlo,monospace; font-size:12px; color:var(--ink2); white-space:nowrap;}
+  #lmBtns{display:flex; gap:6px;}
+  #lmBtns button{min-height:40px;}
   #srcInfo{display:none; gap:8px; align-items:center; background:var(--panel2); border-radius:8px; padding:8px;}
   #srcInfo img{width:44px; height:44px; object-fit:cover; border-radius:6px;}
   #srcInfo div{font-size:12px; line-height:1.4; word-break:break-all;}
@@ -392,12 +406,12 @@
   .help-row .pxi{margin-right:0; width:24px; height:24px; flex:0 0 auto; vertical-align:0;}
   .help-name{font-size:14px; font-weight:700; line-height:1.3;}
   .help-desc{font-size:12px; color:var(--ink2); line-height:1.45;}
-  /* ---------- クロップ画面 ---------- */
-  #cropView{display:block; margin:0 auto; max-width:100%; image-rendering:pixelated; image-rendering:crisp-edges;
+  /* ---------- キャンバスサイズの調整画面／読み込みの調整画面 ---------- */
+  #rszView, #impView, #lscView{display:block; margin:0 auto; max-width:100%; image-rendering:pixelated; image-rendering:crisp-edges;
     border:1px solid var(--line); border-radius:8px; touch-action:none; background:var(--stage);}
-  #cropPadRow{display:flex; justify-content:center; gap:8px; margin:12px 0 4px;}
-  #cropPadRow button{width:52px; min-height:48px; padding:4px; display:flex; align-items:center; justify-content:center;}
-  #cropPadRow .pxi{margin-right:0; vertical-align:0;}
+  #rszPadRow, #impPadRow, #lscPadRow{display:flex; justify-content:center; gap:8px; margin:12px 0 4px;}
+  #rszPadRow button, #impPadRow button, #lscPadRow button{width:52px; min-height:48px; padding:4px; display:flex; align-items:center; justify-content:center;}
+  #rszPadRow .pxi, #impPadRow .pxi, #lscPadRow .pxi{margin-right:0; vertical-align:0;}
   #toast{position:fixed; left:50%; bottom:22px; transform:translateX(-50%) translateY(20px); background:var(--btn-on);
     color:var(--btn-on-ink); padding:10px 16px; border-radius:10px; font-size:13px; opacity:0; pointer-events:none;
     transition:.25s; z-index:200; max-width:88vw; text-align:center;}
@@ -507,7 +521,7 @@
       </div>
       <div class="padRight">
         <button type="button" class="p-help-btn" data-panel-help="pad" aria-expanded="false" aria-label="操作パネルの説明"><canvas class="pxi" data-icon="help" width="12" height="12" aria-hidden="true"></canvas></button>
-        <p class="note p-note">十字キーでカーソルを1ドットずつ動かします。「打ち込み」を押すと、カーソル位置に今のツールでドットを打ちます（押したまま十字キーを動かすと、打ちながら移動できます）。「操作ボタンのみ使用」がONの間は、キャンバスを直接タップ／クリックしても描けません。</p>
+        <p class="note p-note">十字キーでカーソルを1ドットずつ動かします。「打ち込み」を押すと、カーソル位置に今のツールでドットを打ちます（押したまま十字キーを動かすと、打ちながら移動できます）。「操作ボタンのみ使用」がONの間は、キャンバスを直接タップ／クリックしても描けません。レイヤーの移動中は、十字キーでそのレイヤーの中身を動かします。</p>
         <button id="stampBtn" aria-label="打ち込み：カーソル位置に現在のツールでドットを打つ">打ち込み</button>
         <label id="fingerLockCtl"><input type="checkbox" id="fingerLock">操作ボタンのみ使用</label>
       </div>
@@ -541,6 +555,18 @@
         </div>
       </div>
     </div>
+    <!-- レイヤー移動モード：レイヤーパネルの「移動」を押すとこのバーが出て、
+         ステージ上で選択中レイヤーの中身だけをずらせる。操作はキャンバスの
+         ドラッグ・PCの矢印キー・表示中の操作パネル（十字キー）。
+         「決定」で確定（履歴1回分）、「キャンセル」で元の位置に戻る -->
+    <div id="lmBar" aria-label="レイヤー移動">
+      <span id="lmTitle">レイヤーを移動中</span>
+      <span id="lmOffset">X 0 ・ Y 0</span>
+      <div id="lmBtns">
+        <button id="lmOk" class="primary">決定</button>
+        <button id="lmCancel">キャンセル</button>
+      </div>
+    </div>
     </div>
   </div>
 
@@ -556,10 +582,12 @@
       <button id="btnLayerDel" class="small">削除</button>
       <button id="btnLayerUp" class="small">上へ移動</button>
       <button id="btnLayerDown" class="small">下へ移動</button>
+      <button id="btnLayerMove" class="small">移動</button>
+      <button id="btnLayerScale" class="small">拡縮</button>
     </div>
     <div id="layerList"></div>
     <label>選択中レイヤーの不透明度<input type="range" id="layerOpacity" min="5" max="100" value="100" aria-label="選択中レイヤーの不透明度"></label>
-    <span class="hint">描画は選択中のレイヤーに入ります。</span>
+    <span class="hint">描画は選択中のレイヤーに入ります。「移動」を押すと、選択中のレイヤーの中身だけをキャンバス上でずらせます（ドラッグ・矢印キー・十字キーで1ドットずつ）。キャンバスの外にはみ出した部分は切り落とされます。「拡縮」を押すと、選択中のレイヤーの中身だけを拡大・縮小できます（他のレイヤーを背景に表示した調整画面で、スライダーと位置を決めてから確定します）。</span>
   </div>
   </aside>
 </div>
@@ -600,17 +628,20 @@
 
   <section id="secConvert" class="hidden" aria-label="変換" data-ptitle="変換">
     <div class="p-head"><span class="p-title">変換</span><button type="button" class="p-help-btn" data-panel-help="secConvert" aria-expanded="false" aria-label="変換パネルの説明"><canvas class="pxi" data-icon="help" width="12" height="12" aria-hidden="true"></canvas></button></div>
+    <label>変換の適用範囲
+      <select id="scopeSel">
+        <option value="all" selected>全レイヤー</option>
+        <option value="layer">現在のレイヤー</option>
+      </select>
+    </label>
+    <p class="note">機種プリセットを選んだときの色域の適用と、「ドット化と減色」の適用が、この範囲に従います。「現在のレイヤー」のときは、パレットの選定もそのレイヤーの色だけで行い、他のレイヤーには触れません。「解像度を合わせる」（キャンバスサイズの変更）は常に全体が対象です。</p>
     <div class="acc" data-acc>
       <button type="button" class="acc-head" aria-expanded="false"><span class="acc-title">キャンバスサイズ</span><span class="acc-chevron" aria-hidden="true">▼</span></button>
       <div class="acc-body">
         <div class="sizebox">横 <input type="number" id="inW" min="1" max="640" value="32"> × 縦 <input type="number" id="inH" min="1" max="640" value="32">
           <button id="btnResize" class="small">サイズ変更</button></div>
         <label class="row" style="margin-top:8px"><input type="checkbox" id="autoCalc" checked> 自動計算</label>
-        <div style="margin-top:10px">
-          <label class="row"><input type="radio" name="resizeMode" value="scale" checked> 絵を拡縮する</label>
-          <label class="row" style="margin-top:4px"><input type="radio" name="resizeMode" value="pad"> 余白・切り落とし</label>
-        </div>
-        <p class="note">自動計算がONのときは、片方を入れると比率で計算されます。OFFでは横・縦をそれぞれ自由に入力できます。「余白・切り落とし」では画像を引き伸ばさず、大きくする場合は透明の余白を追加し、小さくする場合ははみ出しを切り落とします。比率が変わる場合は、適用前に位置決めの画面が出ます（戻せます）。「絵を拡縮する」では、画像全体を新しいサイズに拡縮します（位置決めの画面は出ません）。</p>
+        <p class="note">自動計算がONのときは、片方を入れると比率で計算されます。OFFでは横・縦をそれぞれ自由に入力できます。「サイズ変更」を押すと、適用前に「キャンバスサイズの調整」画面が出て、新しいキャンバスの枠と今の絵を重ねて見ながら、拡大縮小スライダーと位置で合わせ方を決められます。倍率100%では絵は元の大きさのままで、はみ出しは切り落とし、不足分は透明の余白になります。倍率を変えると、縦横比を保ったまま絵が拡縮されます。</p>
       </div>
     </div>
     <div class="acc" data-acc>
@@ -654,9 +685,8 @@
           <label>スーパーゲームボーイのパレット
             <select id="presetSgbSel" aria-label="スーパーゲームボーイのパレット"></select>
           </label>
-          <p class="note">絵の明るさをゲームボーイの4階調（白・薄・濃・黒）に分け、その階調に選んだパレットの色をそのまま割り当てます。スーパーゲームボーイの色域が有効な間にパレットを選び直すと、今の絵へ新しいパレットがそのまま適用されます（「戻す」で戻せます）。</p>
+          <p class="note">絵の明るさをゲームボーイの4階調（白・薄・濃・黒）に分け、その階調に選んだパレットの色をそのまま割り当てます。スーパーゲームボーイの色域が有効な間にパレットを選び直すと、今の絵へ新しいパレットがそのまま適用されます。</p>
         </div>
-        <label class="row" style="margin-top:8px"><input type="checkbox" id="presetCropPad"> 切り取り・余白で合わせる</label>
         <div id="colorLevelWrap" style="margin-top:10px">
           <label>カラーレベル
             <input type="range" id="colorLevel" min="-50" max="50" step="1" value="0" style="width:100%" aria-label="カラーレベル">
@@ -664,10 +694,10 @@
           <label style="margin-top:8px">コントラスト
             <input type="range" id="colorContrast" min="-50" max="50" step="1" value="0" style="width:100%" aria-label="コントラスト">
           </label>
-          <p class="note">中央が標準です。右に動かすほど中間の色が明るい方へ寄り、左に動かすほど暗い方へ寄ります。すべての機種・変換で共通の設定で、色域への変換の前に明るさの分布を調整します（変換は必ず最後に当たるため、色域の外の色は出ません）。「ドット化と減色」のスライダーとは同じ値を共有します。機種を選ぶときは、この値で色域への変換が行われます。機種を選んでいる間（色域が有効な間）に動かすと、その調整が今の絵へそのまま適用され、色域も維持されます。この調整は「戻す／進む」の対象で、戻すと絵とスライダーの値が調整前に戻ります。コントラストも同じ段の調整で、中央が標準、右に動かすほど明暗の差が広がり、左に動かすほど狭まります。値もレベルと同じく共有し、中央のときは無変換です。</p>
+          <p class="note">中央が標準です。右に動かすほど中間の色が明るい方へ寄り、左に動かすほど暗い方へ寄ります。すべての機種・変換で共通の設定で、色域への変換の前に明るさの分布を調整します（変換は必ず最後に当たるため、色域の外の色は出ません）。「ドット化と減色」のスライダーとは同じ値を共有します。機種を選ぶときは、この値で色域への変換が行われます。機種を選んでいる間（色域が有効な間）に動かすと、その調整が今の絵へそのまま適用され、色域も維持されます。コントラストも同じ段の調整で、中央が標準、右に動かすほど明暗の差が広がり、左に動かすほど狭まります。値もレベルと同じく共有し、中央のときは無変換です。</p>
         </div>
         <button id="btnPreset" style="width:100%;margin-top:8px">解像度を合わせる</button>
-        <p class="note">機種を選んだ時点で、その機種の色域（固定パレット・専用階調、または色空間と同時色数）がそのまま有効になり、今の絵もその色域に変換されます（「戻す」で戻せます）。見えている絵がそのまま作品で、このまま描く色も、書き出す画像も、この色域に合います。解像度は選んだだけでは変わりません。解像度も機種に合わせたいときは「解像度を合わせる」を押してください（縦横比が変わる場合は、切り取り位置を決める画面が出ます）。機種の選択を「選んでください」に戻すと、色域だけが解除されます（絵はそのままです）。</p>
+        <p class="note">機種を選んだ時点で、その機種の色域（固定パレット・専用階調、または色空間と同時色数）がそのまま有効になり、今の絵もその色域に変換されます。見えている絵がそのまま作品で、このまま描く色も、書き出す画像も、この色域に合います。解像度は選んだだけでは変わりません。解像度も機種に合わせたいときは「解像度を合わせる」を押してください（押すと、適用前に「キャンバスサイズの調整」画面が出て、合わせ方と結果を確認できます）。機種の選択を「選んでください」に戻すと、色域だけが解除されます（絵はそのままです）。</p>
         <p class="note note-live" id="presetActiveNote" style="display:none"></p>
       </div>
     </div>
@@ -686,7 +716,7 @@
             <option value="512">512色（RGB各3bit）</option>
             <option value="64">64色（RGB各2bit）</option>
           </select></label>
-        <p class="note">ビット段の色空間は、選んだ時点で今の絵の色をその色空間に寄せます（全フレーム・全レイヤー対象、戻せます）。以後選ぶ色もその色空間に寄ります。固定パレット・専用階調の色域は、ここでは扱いません。使いたいときは「機種プリセット」で機種を選んでください（選んだ時点で色域が有効になります）。機種プリセットの固定パレットが有効な間は、この欄にはそのパレット名が表示されます。「制限なし」を選ぶと、その色域は解除されます（絵はそのままです）。</p>
+        <p class="note">ビット段の色空間は、選んだ時点で今の絵の色をその色空間に寄せます（全フレーム・全レイヤー対象）。以後選ぶ色もその色空間に寄ります。固定パレット・専用階調の色域は、ここでは扱いません。使いたいときは「機種プリセット」で機種を選んでください（選んだ時点で色域が有効になります）。機種プリセットの固定パレットが有効な間は、この欄にはそのパレット名が表示されます。「制限なし」を選ぶと、その色域は解除されます（絵はそのままです）。</p>
         <p class="note note-live" id="csPreviewNote" style="display:none"></p>
         <button id="btnCsApply" style="width:100%;margin-top:8px;display:none">この色変換を適用する</button>
         <div style="height:10px"></div>
@@ -727,14 +757,14 @@
           <label style="margin-top:8px">コントラスト
             <input type="range" id="reduceContrast" min="-50" max="50" step="1" value="0" style="width:100%" aria-label="コントラスト（ドット化と減色）">
           </label>
-          <p class="note">中央が標準です。色空間への変換と減色の前に適用される、明るさの分布の調整です。色数が選ばれている間は、プレビューにも補正→減色までかけた姿が出るので、見えている色のまま実行結果になります。機種プリセット欄のスライダーとは同じ値を共有します。機種を選んでいる間に動かした場合は、プリセット欄側の扱い（今の絵へそのまま適用され、「戻す／進む」の対象）になります。それ以外の場合は変換する前に決める値で、適用した後に動かしても適用済みの絵は変わりません（結果を直したいときは「戻す」で適用前に戻し、レベルを変えて適用し直してください）。コントラストも同じ段の調整で、中央が標準、右で明暗の差が広がり、左で狭まります。値もレベルと同じく共有し、中央のときは無変換です。</p>
+          <p class="note">中央が標準です。色空間への変換と減色の前に適用される、明るさの分布の調整です。色数が選ばれている間は、プレビューにも補正→減色までかけた姿が出るので、見えている色のまま実行結果になります。機種プリセット欄のスライダーとは同じ値を共有します。機種を選んでいる間に動かした場合は、プリセット欄側の扱い（今の絵へそのまま適用されます）になります。それ以外の場合は変換する前に決める値で、適用した後に動かしても適用済みの絵は変わりません。コントラストも同じ段の調整で、中央が標準、右で明暗の差が広がり、左で狭まります。値もレベルと同じく共有し、中央のときは無変換です。</p>
         </div>
         <label class="row" style="margin-top:10px"><input type="checkbox" id="palLockToggle"> パレットを固定する</label>
-        <p class="note">「絵を拡縮する」でサイズ変更するときにだけ効きます。ONでは今の絵の色だけで拡縮します。</p>
+        <p class="note">キャンバスサイズの調整で絵を拡縮するときにだけ効きます。ONでは今の絵の色だけで拡縮します。</p>
         <div style="height:12px"></div>
         <p class="note note-live" id="reducePreviewNote" style="display:none"></p>
         <button id="btnReduce" style="width:100%">今の絵をこの色数に減色する</button>
-        <p class="note">全フレーム・全レイヤーが対象です（戻せます）。</p>
+        <p class="note">対象は「変換の適用範囲」の選択に従います。</p>
       </div>
     </div>
     <div class="acc" data-acc>
@@ -745,7 +775,7 @@
         <p class="note">透明部分に接する1ドットを取り除きます。</p>
         <div style="height:10px"></div>
         <button id="btnWhiteNow" style="width:100%">今の絵の白を透明にする</button>
-        <p class="note">全フレーム・全レイヤーが対象です（戻せます）。</p>
+        <p class="note">全フレーム・全レイヤーが対象です。</p>
       </div>
     </div>
   </section>
@@ -855,33 +885,108 @@
   </div>
 </div>
 
-<!-- クロップ画面：比率が変わるサイズ変更（手動・プリセット共通）のときだけ、
-     確定前に新しいキャンバス枠の位置決めをする。保存画面と同系統のモーダル -->
-<div class="modal" id="cropModal">
-  <div class="sheet" id="cropSheet">
+<!-- キャンバスサイズの調整画面：サイズ変更（手動・プリセット共通）は
+     即適用せず、この画面で新しいキャンバスの枠と今の絵を重ねて見ながら
+     拡大縮小スライダーと位置を決めてから確定する（読み込みの調整画面と
+     同じ使い回し。モード選択は無い）。保存画面と同系統のモーダル -->
+<div class="modal" id="rszModal">
+  <div class="sheet" id="rszSheet">
     <div class="p-head" style="margin-bottom:6px">
-      <h3 style="margin:0">切り取り位置の調整</h3>
-      <button type="button" class="p-help-btn" data-panel-help="cropSheet" aria-expanded="false" aria-label="切り取り画面の説明"><canvas class="pxi" data-icon="help" width="12" height="12" aria-hidden="true"></canvas></button>
+      <h3 style="margin:0">キャンバスサイズの調整</h3>
+      <button type="button" class="p-help-btn" data-panel-help="rszSheet" aria-expanded="false" aria-label="キャンバスサイズの調整画面の説明"><canvas class="pxi" data-icon="help" width="12" height="12" aria-hidden="true"></canvas></button>
     </div>
-    <!-- 常時表示は「何をどう変換するか」の要点だけ（状態表示）。
-         操作方法などの説明文はタイトル右上の「？」の先（cropHelp）に置き、
-         初期状態では出さない。パネルと同じ方式 -->
-    <p id="cropInfo">新しいキャンバスの枠を、今の絵の上で動かして位置を決めてください。</p>
-    <p class="note p-note" id="cropHelp" style="margin-top:6px"></p>
-    <canvas id="cropView" width="300" height="300"></canvas>
-    <p class="note" id="cropPos" style="text-align:center;margin-top:8px"></p>
-    <!-- 枠の移動ボタンは十字配置ではなく横1行。プレビューのすぐ下に、
+    <!-- 常時表示は状態表示（現在サイズ→新サイズ）だけ。操作方法などの
+         説明文はタイトル右上の「？」の先（rszHelp）に置き、初期状態では
+         出さない。パネルと同じ方式 -->
+    <p id="rszInfo">新しいキャンバスの枠を、今の絵の上に重ねて表示します。</p>
+    <p class="note p-note" id="rszHelp" style="margin-top:6px">赤い枠が新しいキャンバスです。拡大縮小のスライダーを動かすと、絵の中心を基準に、縦横比を保ったまま大きさが変わります（倍率100%では絵は元の大きさのままです）。絵は、プレビューのドラッグ・下の矢印ボタン・PCの矢印キーで動かせます（矢印ボタンは1ドットずつ、長押しで連続）。枠の外側にはみ出した部分は切り落とされ、枠が絵より大きい部分は透明の余白になります。</p>
+    <!-- 読み込みの調整画面と同じ拡大縮小スライダー（10%〜400%・倍率と
+         拡縮後のピクセルサイズを表示） -->
+    <div style="margin:10px 0">
+      <label>拡大縮小 <span id="rszScalePct" style="color:var(--ink);font-size:13px">100%</span> <span id="rszScaleSize" style="font-size:12px"></span>
+        <input type="range" id="rszScale" min="10" max="400" step="1" value="100" aria-label="絵の拡大縮小（10%〜400%）">
+      </label>
+    </div>
+    <canvas id="rszView" width="300" height="300"></canvas>
+    <p class="note" id="rszPos" style="text-align:center;margin-top:8px"></p>
+    <!-- 絵の移動ボタンは十字配置ではなく横1行。プレビューのすぐ下に、
          決定・キャンセルと同じまとまりとして置く（ドラッグ移動と
          PCの矢印キーは従来どおり使える） -->
-    <div id="cropPadRow">
-      <button data-cdir="left" aria-label="枠を左へ移動"><canvas class="pxi" data-icon="tri" data-rot="3" width="12" height="12" aria-hidden="true"></canvas></button>
-      <button data-cdir="up" aria-label="枠を上へ移動"><canvas class="pxi" data-icon="tri" data-rot="0" width="12" height="12" aria-hidden="true"></canvas></button>
-      <button data-cdir="down" aria-label="枠を下へ移動"><canvas class="pxi" data-icon="tri" data-rot="2" width="12" height="12" aria-hidden="true"></canvas></button>
-      <button data-cdir="right" aria-label="枠を右へ移動"><canvas class="pxi" data-icon="tri" data-rot="1" width="12" height="12" aria-hidden="true"></canvas></button>
+    <div id="rszPadRow">
+      <button data-rdir="left" aria-label="絵を左へ移動"><canvas class="pxi" data-icon="tri" data-rot="3" width="12" height="12" aria-hidden="true"></canvas></button>
+      <button data-rdir="up" aria-label="絵を上へ移動"><canvas class="pxi" data-icon="tri" data-rot="0" width="12" height="12" aria-hidden="true"></canvas></button>
+      <button data-rdir="down" aria-label="絵を下へ移動"><canvas class="pxi" data-icon="tri" data-rot="2" width="12" height="12" aria-hidden="true"></canvas></button>
+      <button data-rdir="right" aria-label="絵を右へ移動"><canvas class="pxi" data-icon="tri" data-rot="1" width="12" height="12" aria-hidden="true"></canvas></button>
     </div>
     <div class="menu">
-      <button id="cropOk" class="primary">この位置で決定する</button>
-      <button id="cropCancel">キャンセル</button>
+      <button id="rszOk" class="primary">決定</button>
+      <button id="rszCancel">キャンセル</button>
+    </div>
+  </div>
+</div>
+
+<!-- 読み込みの調整：静止画を既存ドキュメントへ読み込むとき、画像サイズが
+     現在のキャンバスと異なる場合に開く。現在のキャンバスの上に読み込む
+     画像を重ねて表示し、大きさ（倍率）と位置を決めてから、現在の
+     フレームへ新規レイヤーとして追加する。サイズ調整画面と同系統のモーダル -->
+<div class="modal" id="impModal">
+  <div class="sheet" id="impSheet">
+    <div class="p-head" style="margin-bottom:6px">
+      <h3 style="margin:0">読み込みの調整</h3>
+      <button type="button" class="p-help-btn" data-panel-help="impSheet" aria-expanded="false" aria-label="読み込みの調整の説明"><canvas class="pxi" data-icon="help" width="12" height="12" aria-hidden="true"></canvas></button>
+    </div>
+    <p id="impInfo">読み込む画像を、現在のキャンバスの上に重ねます。</p>
+    <p class="note p-note" id="impHelp" style="margin-top:6px">赤い枠が現在のキャンバスです。画像は、プレビューのドラッグ・下の矢印ボタン・PCの矢印キーで動かせます（矢印ボタンは1ドットずつ、長押しで連続）。枠の外側にはみ出した部分は切り落とされます。拡大縮小のスライダーを動かすと、画像の中心を基準に大きさが変わります（縦横比は変わりません）。</p>
+    <div style="margin:10px 0">
+      <label>拡大縮小 <span id="impScalePct" style="color:var(--ink);font-size:13px">100%</span> <span id="impScaleSize" style="font-size:12px"></span>
+        <input type="range" id="impScale" min="10" max="400" step="1" value="100" aria-label="読み込む画像の拡大縮小（10%〜400%）">
+      </label>
+    </div>
+    <canvas id="impView" width="300" height="300"></canvas>
+    <p class="note" id="impPos" style="text-align:center;margin-top:8px"></p>
+    <div id="impPadRow">
+      <button data-idir="left" aria-label="画像を左へ移動"><canvas class="pxi" data-icon="tri" data-rot="3" width="12" height="12" aria-hidden="true"></canvas></button>
+      <button data-idir="up" aria-label="画像を上へ移動"><canvas class="pxi" data-icon="tri" data-rot="0" width="12" height="12" aria-hidden="true"></canvas></button>
+      <button data-idir="down" aria-label="画像を下へ移動"><canvas class="pxi" data-icon="tri" data-rot="2" width="12" height="12" aria-hidden="true"></canvas></button>
+      <button data-idir="right" aria-label="画像を右へ移動"><canvas class="pxi" data-icon="tri" data-rot="1" width="12" height="12" aria-hidden="true"></canvas></button>
+    </div>
+    <div class="menu">
+      <button id="impOk" class="primary">この位置で追加する</button>
+      <button id="impCancel">キャンセル</button>
+    </div>
+  </div>
+</div>
+
+<!-- レイヤーの拡縮：レイヤーパネルの「拡縮」を押すと開く。現在の
+     キャンバスの枠の上に、背景として他のレイヤーの合成を表示し、
+     その上に対象レイヤーの絵（キャンバス寸法のビットマップ）を
+     1つの画像として重ねて、拡大縮小スライダーと位置で決めてから、
+     対象レイヤーだけへ確定する。読み込みの調整・キャンバスサイズの
+     調整と同じ使い回しのモーダル -->
+<div class="modal" id="lscModal">
+  <div class="sheet" id="lscSheet">
+    <div class="p-head" style="margin-bottom:6px">
+      <h3 style="margin:0">レイヤーの拡縮</h3>
+      <button type="button" class="p-help-btn" data-panel-help="lscSheet" aria-expanded="false" aria-label="レイヤーの拡縮画面の説明"><canvas class="pxi" data-icon="help" width="12" height="12" aria-hidden="true"></canvas></button>
+    </div>
+    <p id="lscInfo">選択中のレイヤーを拡縮します。</p>
+    <p class="note p-note" id="lscHelp" style="margin-top:6px">赤い枠がキャンバスです。背景には他のレイヤーの合成を表示していますが、変わるのはこのレイヤーだけです。拡大縮小のスライダーを動かすと、絵の中心を基準に、縦横比を保ったまま大きさが変わります（倍率100%では絵は元の大きさのままです）。絵は、プレビューのドラッグ・下の矢印ボタン・PCの矢印キーで動かせます（矢印ボタンは1ドットずつ、長押しで連続）。枠の外側にはみ出した部分は切り落とされます。</p>
+    <div style="margin:10px 0">
+      <label>拡大縮小 <span id="lscScalePct" style="color:var(--ink);font-size:13px">100%</span> <span id="lscScaleSize" style="font-size:12px"></span>
+        <input type="range" id="lscScale" min="10" max="400" step="1" value="100" aria-label="レイヤーの拡大縮小（10%〜400%）">
+      </label>
+    </div>
+    <canvas id="lscView" width="300" height="300"></canvas>
+    <p class="note" id="lscPos" style="text-align:center;margin-top:8px"></p>
+    <div id="lscPadRow">
+      <button data-lsdir="left" aria-label="絵を左へ移動"><canvas class="pxi" data-icon="tri" data-rot="3" width="12" height="12" aria-hidden="true"></canvas></button>
+      <button data-lsdir="up" aria-label="絵を上へ移動"><canvas class="pxi" data-icon="tri" data-rot="0" width="12" height="12" aria-hidden="true"></canvas></button>
+      <button data-lsdir="down" aria-label="絵を下へ移動"><canvas class="pxi" data-icon="tri" data-rot="2" width="12" height="12" aria-hidden="true"></canvas></button>
+      <button data-lsdir="right" aria-label="絵を右へ移動"><canvas class="pxi" data-icon="tri" data-rot="1" width="12" height="12" aria-hidden="true"></canvas></button>
+    </div>
+    <div class="menu">
+      <button id="lscOk" class="primary">決定</button>
+      <button id="lscCancel">キャンセル</button>
     </div>
   </div>
 </div>
@@ -1177,7 +1282,7 @@ function renderThumbs(){
     var c = flattenCanvas(frame);
     d.appendChild(c);
     var lb = document.createElement('div'); lb.textContent = (i+1) + 'コマ'; d.appendChild(lb);
-    d.addEventListener('click', function(){ stopPlay(); S.cur = i; renderLayerPanel(); render(); });
+    d.addEventListener('click', function(){ if (moveModeBlock()) return; stopPlay(); S.cur = i; renderLayerPanel(); render(); });
     wrap.appendChild(d);
   });
 }
@@ -1292,6 +1397,7 @@ function pushUndo(){
 function clearUndoStacks(){ S.undoStack = []; S.redoStack = []; syncUndoBtns(); }
 function syncUndoBtns(){ $('btnUndo').disabled = !S.undoStack.length; $('btnRedo').disabled = !S.redoStack.length; }
 function doUndo(){
+  if (moveModeBlock()) return;
   if (!S.undoStack.length) return;
   levelGesture = null;
   endLevelPreview();
@@ -1303,6 +1409,7 @@ function doUndo(){
   if (S.w !== ow || S.h !== oh) fitZoom(); else render();
 }
 function doRedo(){
+  if (moveModeBlock()) return;
   if (!S.redoStack.length) return;
   levelGesture = null;
   endLevelPreview();
@@ -1551,7 +1658,7 @@ function syncColorSpaceUI(){
 }
 /* ================= 色変換の共通処理（一本化） =================
    色の変換はすべてこの1本（convertColorDatas）に寄せる。入口（機種
-   プリセット／色空間の単体変換／減色／切り取り画面／プレビュー）は、
+   プリセット／色空間の単体変換／減色／プレビュー）は、
    変換の指定（spec）を参数として渡すだけで、変換ロジックを入口ごとに
    持つことはしない。
    処理順は固定で、
@@ -1599,7 +1706,7 @@ function syncColorSpaceUI(){
    ずらす（プラスのときガンマ<1 で中間が明るい方へ持ち上がり、
    マイナスのときガンマ>1 で暗い方へ寄る。0 のときは補正なしで
    従来と完全に同じ結果になる）。表示箇所（プリセット欄／ドット化と
-   減色欄／切り取り画面）はすべてこの1つの値を共有し、同期する */
+   減色欄）はすべてこの1つの値を共有し、同期する */
 var colorLevel = 0;
 function syncLevelSliders(){
   ['colorLevel', 'reduceLevel'].forEach(function(id){
@@ -1612,7 +1719,7 @@ function syncLevelSliders(){
    無変換で、従来の変換結果と完全に一致する。右で明暗の差が広がり、
    左で狭まる。倍率は 2^(値/50)（+50で2倍、-50で1/2倍）とし、
    中央128を軸に各チャンネルを拡縮する。表示箇所（プリセット欄／
-   ドット化と減色欄／切り取り画面）はすべてこの1つの値を共有し、
+   ドット化と減色欄）はすべてこの1つの値を共有し、
    レベルのスライダーと並べて同期する */
 var colorContrast = 0;
 function syncContrastSliders(){
@@ -1822,6 +1929,37 @@ function frameGroupsFor(frames){
     groups.push(g);
   });
   return groups;
+}
+/* 変換の適用範囲（変換パネルの「変換の適用範囲」の選択）。
+   'all'＝全フレーム・全レイヤー（従来の挙動）、'layer'＝現在の
+   フレームの選択中レイヤーだけ。機種プリセット選択時の色域の即時
+   適用と、「ドット化と減色」の適用がこの範囲に従う。対象を絞るのは、
+   convertColorDatas へ渡す datas／frameGroups を対象分だけにする
+   ことで行うため、「現在のレイヤー」のときはパレット選定（固定
+   パレットの部分パレット選び・減色のパレット選定）もそのレイヤーの
+   色だけで行われ、他のレイヤー・他のフレームには一切触れない。
+   「解像度を合わせる」（キャンバスサイズ変更）はこの範囲の対象外で、
+   従来どおり全体に適用される */
+function convScope(){
+  var el = $('scopeSel');
+  return (el && el.value === 'layer') ? 'layer' : 'all';
+}
+function scopeLabel(){
+  return convScope() === 'layer' ? '現在のレイヤー' : '全フレーム・全レイヤー';
+}
+/* 適用範囲に応じた、変換対象のピクセルデータ配列とフレーム分けを返す */
+function scopedDatas(){
+  if (convScope() === 'layer'){
+    var f = curFrame();
+    var L = f.layers[f.active];
+    return {
+      datas: [L.data],
+      groups: [[{ i: 0, visible: L.visible !== false, opacity: (L.opacity == null ? 100 : L.opacity) }]]
+    };
+  }
+  var datas = [];
+  S.frames.forEach(function(fr){ fr.layers.forEach(function(L){ datas.push(L.data); }); });
+  return { datas: datas, groups: frameGroupsFor(S.frames) };
 }
 /* 色変換の共通処理本体。datas はピクセルデータの配列（各要素が
    1レイヤーぶん・w×h）で、その場で書き換える。ドキュメント本体にも
@@ -2156,10 +2294,19 @@ function updateLevelPreview(){
       if (src && src.length === L.data.length) L.data = src.slice();
     });
   });
-  /* プレビューも適用時と同じ共通処理へ、変換指定を渡すだけ */
-  var datas = [];
-  S.frames.forEach(function(fr){ fr.layers.forEach(function(L){ datas.push(L.data); }); });
-  var hexes = convertColorDatas(datas, S.w, S.h, info.spec, frameGroupsFor(S.frames));
+  /* プレビューも適用時と同じ共通処理へ、変換指定を渡すだけ。
+     減色のプレビューは実行（btnReduce）と適用範囲まで含めて一致
+     させるため、'reduce' のときは scopedDatas で対象を絞る */
+  var datas, groups;
+  if (previewRequest && previewRequest.source === 'reduce'){
+    var scp = scopedDatas();
+    datas = scp.datas; groups = scp.groups;
+  } else {
+    datas = [];
+    S.frames.forEach(function(fr){ fr.layers.forEach(function(L){ datas.push(L.data); }); });
+    groups = frameGroupsFor(S.frames);
+  }
+  var hexes = convertColorDatas(datas, S.w, S.h, info.spec, groups);
   if (hexes.length >= 4) buildPalette(hexes.slice(0, 48));
   showPreviewNote(info);
   render();
@@ -2201,9 +2348,12 @@ function applyPresetColorSteps(preset){
     : preset.fixedPalette === NES_PALETTE ? 'fc'
     : preset.rank === 'sgb' ? ('sgb:' + selSgbPreset) : null;
   syncColorSpaceUI();
-  var datas = [];
-  S.frames.forEach(function(fr){ fr.layers.forEach(function(L){ datas.push(L.data); }); });
-  var hexes = convertColorDatas(datas, S.w, S.h, spec, frameGroupsFor(S.frames));
+  /* 色域の全体設定（上の colorSpace／paletteMode）はドキュメント全体の
+     設定として切り替えるが、既存ピクセルの変換は「変換の適用範囲」に
+     従う（'layer' のときは現在のレイヤーだけを変換し、パレット選定も
+     そのレイヤーの色だけで行う） */
+  var sc = scopedDatas();
+  var hexes = convertColorDatas(sc.datas, S.w, S.h, spec, sc.groups);
   /* パレットモード中は使用色が少なくてもスウォッチを全色表示へ
      切り替えるため、条件なしで buildPalette を呼ぶ */
   if (hexes.length >= 4 || S.paletteMode) buildPalette(hexes.slice(0, 48));
@@ -2318,7 +2468,7 @@ $('colorSpaceSel').addEventListener('change', function(e){
     });
   });
   if (cs){
-    toast('色空間を ' + cs + ' 色に切り替えました。全レイヤーの既存ピクセル ' + changed + ' 個を寄せました（「戻す」で戻せます）');
+    toast('色空間を ' + cs + ' 色に切り替えました。全レイヤーの既存ピクセル ' + changed + ' 個を寄せました');
   } else {
     toast('色空間の制限をなくしました（ピクセルはそのままです）');
   }
@@ -2346,7 +2496,7 @@ $('btnCsApply').addEventListener('click', function(){
   convertColorDatas(datasN, S.w, S.h, spec, frameGroupsFor(S.frames));
   syncColorSpaceUI();
   render();
-  toast('レベルとコントラストの補正だけを適用しました（色域は変換していません。全フレーム・全レイヤー、「戻す」で戻せます）');
+  toast('レベルとコントラストの補正だけを適用しました（色域は変換していません。全フレーム・全レイヤー）');
 });
 $('alphaRange').addEventListener('input', function(){ var c = S.color.slice(); c[3] = +$('alphaRange').value; setColor(c); });
 $('swTrans').addEventListener('click', function(){ setColor([0,0,0,0]); toast('透明ピクセルを選択しました。ペン／塗りつぶしで透明を打てます'); });
@@ -2360,6 +2510,17 @@ function eventToCell(e){
   return { x: clamp(x,0,S.w-1), y: clamp(y,0,S.h-1) };
 }
 view.addEventListener('pointerdown', function(e){
+  /* レイヤー移動中は、キャンバスのドラッグで対象レイヤーの中身を
+     ずらす。この判定は「操作ボタンのみ使用」の直接入力ブロックより
+     前に置き、移動モード中はその設定に依らずドラッグできるように
+     する。中ボタンのパンだけは従来どおり使えるよう、下の処理へ流す */
+  if (layerMove && !(e.pointerType === 'mouse' && e.button === 1)){
+    if (e.pointerType === 'mouse' && e.button === 2){ e.preventDefault(); return; }
+    e.preventDefault();
+    view.setPointerCapture(e.pointerId);
+    layerDrag = { id: e.pointerId, x: e.clientX, y: e.clientY, dx: layerMove.dx, dy: layerMove.dy };
+    return;
+  }
   /* PC：キャンバス上の右クリック（マウス）はスポイトとして働く。
      色の取り込みはスポイトツールと同じ（合成結果から拾い、カーソルもそのマスへ移す）。
      コンテキストメニューは下の contextmenu 側で出さない。タッチには影響させない */
@@ -2409,6 +2570,17 @@ view.addEventListener('pointerdown', function(e){
   drawing = true; applyTool(cell.x, cell.y, true);
 });
 view.addEventListener('pointermove', function(e){
+  /* レイヤー移動中のドラッグ：指・マウスの動きをドット単位に直して、
+     対象レイヤーの中身をそのまま追随させる */
+  if (layerDrag && e.pointerId === layerDrag.id){
+    var vr = view.getBoundingClientRect();
+    if (vr.width && vr.height){
+      setLayerMoveOffset(
+        layerDrag.dx + Math.round((e.clientX - layerDrag.x) / (vr.width / S.w)),
+        layerDrag.dy + Math.round((e.clientY - layerDrag.y) / (vr.height / S.h)));
+    }
+    return;
+  }
   /* 中ボタンのパンは pointers に入っていないポインタで動かす。
      パン量は移動ツールのパンと同じくドラッグ量そのまま */
   if (midPan && e.pointerId === midPan.id){
@@ -2437,6 +2609,8 @@ view.addEventListener('pointermove', function(e){
   }
 });
 function endPointer(e){
+  /* レイヤー移動のドラッグ終了（描画・ピンチ側の状態には触れない） */
+  if (layerDrag && e.pointerId === layerDrag.id) layerDrag = null;
   /* 中ボタンのパンの終了。描画・ピンチ側の状態には触れない */
   if (midPan && e.pointerId === midPan.id){
     midPan = null;
@@ -2730,6 +2904,7 @@ $('tglFrames').addEventListener('click', function(){
   keepZoomRender();
 });
 $('btnClear').addEventListener('click', function(){
+  if (moveModeBlock()) return;
   pushUndo(); activeLayer().data = blankFrame(); render(); toast('選択中のレイヤーを全消ししました');
 });
 $('btnUndo').addEventListener('click', doUndo);
@@ -2760,7 +2935,9 @@ var padStampHeld = false;
 (function(){
   var sb = $('stampBtn');
   sb.addEventListener('pointerdown', function(e){
-    e.preventDefault(); sb.setPointerCapture(e.pointerId);
+    e.preventDefault();
+    if (layerMove) return; /* レイヤー移動中は「打ち込み」で描画しない */
+    sb.setPointerCapture(e.pointerId);
     padStampHeld = true; sb.classList.add('held');
     applyTool(S.cursor.x, S.cursor.y, true);
   });
@@ -2771,6 +2948,9 @@ document.querySelectorAll('.dpad [data-dir]').forEach(function(b){
   var d = b.dataset.dir;
   var dx = d==='left'?-1:d==='right'?1:0, dy = d==='up'?-1:d==='down'?1:0;
   holdable(b, function(){
+    /* レイヤー移動中は、十字キーはカーソルではなく対象レイヤーの
+       中身を動かす（「打ち込み」を押していても描画はしない） */
+    if (layerMove){ moveLayerBy(dx, dy); return; }
     var paint = padStampHeld ? (S.tool === 'eraser' ? 'erase' : 'paint') : null;
     moveCursor(dx, dy, paint);
   });
@@ -2778,11 +2958,40 @@ document.querySelectorAll('.dpad [data-dir]').forEach(function(b){
 document.addEventListener('keydown', function(e){
   var tag = (e.target.tagName || '').toLowerCase();
   if (tag === 'input' || tag === 'select' || tag === 'textarea' || e.target.isContentEditable) return;
-  /* クロップ画面を開いている間は、矢印キーで枠を1ドットずつ動かす（他の操作は受け付けない） */
-  if (cropState && $('cropModal').classList.contains('open')){
+  /* レイヤー移動中は、矢印キーで対象レイヤーを1ドットずつ動かす
+     （カーソル移動・描画・履歴操作は受け付けない。キーの長押しは
+     keydown の繰り返しでそのまま連続移動になる） */
+  if (layerMove){
+    var lkx = e.key === 'ArrowLeft' ? -1 : e.key === 'ArrowRight' ? 1 : 0;
+    var lky = e.key === 'ArrowUp' ? -1 : e.key === 'ArrowDown' ? 1 : 0;
+    if (lkx || lky){ e.preventDefault(); moveLayerBy(lkx, lky); }
+    else if (e.key === 'Enter'){ e.preventDefault(); endLayerMove(true); }
+    else if (e.key === 'Escape'){ e.preventDefault(); endLayerMove(false); }
+    return;
+  }
+  /* レイヤーの拡縮画面を開いている間は、矢印キーで絵を1ドットずつ
+     動かす（Enter＝決定／Esc＝キャンセル。他の操作は受け付けない） */
+  if (typeof lscState !== 'undefined' && lscState && $('lscModal').classList.contains('open')){
+    var lskx = e.key === 'ArrowLeft' ? -1 : e.key === 'ArrowRight' ? 1 : 0;
+    var lsky = e.key === 'ArrowUp' ? -1 : e.key === 'ArrowDown' ? 1 : 0;
+    if (lskx || lsky){ e.preventDefault(); moveLsc(lskx, lsky); }
+    else if (e.key === 'Enter'){ e.preventDefault(); commitLayerScale(); }
+    else if (e.key === 'Escape'){ e.preventDefault(); cancelLayerScale(); }
+    return;
+  }
+  /* 読み込みの調整画面を開いている間は、矢印キーで画像を1ドットずつ動かす（他の操作は受け付けない） */
+  if (impAdj && $('impModal').classList.contains('open')){
+    var ikx = e.key === 'ArrowLeft' ? -1 : e.key === 'ArrowRight' ? 1 : 0;
+    var iky = e.key === 'ArrowUp' ? -1 : e.key === 'ArrowDown' ? 1 : 0;
+    if (ikx || iky){ e.preventDefault(); moveImp(ikx, iky); }
+    return;
+  }
+  /* キャンバスサイズの調整画面を開いている間は、矢印キーで絵を1ドットずつ
+     動かす（他の操作は受け付けない） */
+  if (rszState && $('rszModal').classList.contains('open')){
     var ckx = e.key === 'ArrowLeft' ? -1 : e.key === 'ArrowRight' ? 1 : 0;
     var cky = e.key === 'ArrowUp' ? -1 : e.key === 'ArrowDown' ? 1 : 0;
-    if (ckx || cky){ e.preventDefault(); moveCropFrame(ckx, cky); }
+    if (ckx || cky){ e.preventDefault(); moveRsz(ckx, cky); }
     return;
   }
   if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'y'){ e.preventDefault(); doRedo(); return; }
@@ -2826,14 +3035,12 @@ function resizeCanvas(nw, nh, keep, skipHist, exact){
   S.cursor.x = clamp(S.cursor.x, 0, nw-1); S.cursor.y = clamp(S.cursor.y, 0, nh-1);
   $('inW').value = nw; $('inH').value = nh;
 }
-/* ================= サイズ変更（余白追加／切り落とし） =================
-   通常のキャンバスサイズ変更は、画像を引き伸ばさず、大きくする場合は透明の
-   余白を追加し、小さくする場合ははみ出しを切り落とす。位置はオフセット
-   （dx, dy）＝「元の絵の左上が、新しいキャンバスのどこに来るか」で表し、
-   全フレーム・全レイヤーへ同じオフセットで適用する。
-   ・比率が変わらない変更：中央基準で即適用（クロップ画面は出さない）
-   ・比率が変わる変更：適用前にクロップ画面で位置決めする
-   「パレットを固定する」ONのときだけは従来どおりリサンプル方式を使う */
+/* ================= サイズ変更（配置のコピー） =================
+   サイズ変更は即適用せず、「キャンバスサイズの調整」画面（後段）で
+   新しいキャンバスの枠と今の絵を重ねてプレビューしてから確定する。
+   配置はオフセット（dx, dy）＝「絵の左上が、新しいキャンバスのどこに
+   来るか」で表し、全フレーム・全レイヤーへ同じオフセットで適用する。
+   枠からはみ出した分は切り落とされ、足りない分は透明になる */
 function offsetCopyData(data, oldW, oldH, nw, nh, dx, dy){
   var out = new Uint8ClampedArray(nw * nh * 4);
   var sx0 = Math.max(0, -dx), sx1 = Math.min(oldW, nw - dx);
@@ -2846,87 +3053,29 @@ function offsetCopyData(data, oldW, oldH, nw, nh, dx, dy){
   }
   return out;
 }
-function applyOffsetResize(nw, nh, dx, dy){
-  var oldW = S.w, oldH = S.h;
-  var nf = S.frames.map(function(frame){
-    var nl = frame.layers.map(function(L){
-      return { data: offsetCopyData(L.data, oldW, oldH, nw, nh, dx, dy), visible: L.visible, opacity: L.opacity, name: L.name };
-    });
-    return { layers: nl, active: clamp(frame.active, 0, nl.length - 1) };
-  });
-  S.w = nw; S.h = nh; S.frames = nf;
-  S.cursor.x = clamp(S.cursor.x, 0, nw - 1); S.cursor.y = clamp(S.cursor.y, 0, nh - 1);
-  $('inW').value = nw; $('inH').value = nh;
-}
-/* サイズ変更の確定処理。履歴はここで1回だけ積むので、解像度変更も
-   「戻す」1回で全体が戻る。色域はここでは触らない（プリセットの色域は
-   機種を選んだ時点で別に適用済みで、この確定は解像度だけを変える） */
-function commitCanvasResize(nw, nh, dx, dy, preset){
-  if (S.playing) stopPlay();
-  pushUndo();
-  applyOffsetResize(nw, nh, dx, dy);
-  fitZoom();
-  syncPresetUI();
-  if (preset){
-    toast(preset.name + 'の解像度に合わせました（' + nw + '×' + nh + '、「戻す」で戻せます）');
-  } else {
-    toast('サイズを ' + nw + '×' + nh + ' に変更しました（余白の追加／切り落としで合わせました）');
-  }
-}
-/* サイズ変更の入口（手動・プリセット共通）。比率が変わる場合は
-   クロップ画面で位置を決めてから確定する。切り取り画面は位置決め
-   専用で、今の絵（プリセット選択時は色域適用済みの絵）をそのまま出す */
-function requestCanvasResize(nw, nh, preset){
-  if (S.playing) stopPlay();
-  if (nw * S.h !== nh * S.w){
-    var src = null;
-    if (preset){
-      src = {
-        w: S.w, h: S.h,
-        canvas: flattenCanvas(curFrame()),
-        status: '現在 ' + S.w + '×' + S.h + ' → ' + preset.name + 'の解像度 ' + nw + '×' + nh,
-        info: '新しいキャンバスの枠を、今の絵の上で動かして残す範囲を決めてください。枠は、プレビューのドラッグ・下の矢印ボタン・PCの矢印キーで動かせます。枠の外側は切り落とされ、枠が絵より大きい部分は透明の余白になります。色はこの画面では変えません。'
-      };
-    }
-    openCrop(nw, nh, function(dx, dy){ commitCanvasResize(nw, nh, dx, dy, preset); }, src);
-  } else {
-    commitCanvasResize(nw, nh, Math.round((nw - S.w) / 2), Math.round((nh - S.h) / 2), preset);
-  }
-}
 $('btnResize').addEventListener('click', function(){
-  /* サイズ変更の適用方法は2択：「余白・切り落とし」（従来方式。比率が
-     変わる場合はクロップ画面で位置決めする）と「絵を拡縮する」
-     （画像全体をリサンプルで拡縮し、クロップ画面は出さない）。
-     「パレットを固定する」チェックは「絵を拡縮する」のときにだけ効く。
-     サイズ入力は共通のキャンバスサイズ欄をそのまま使う */
+  /* サイズ変更は即適用せず、「キャンバスサイズの調整」画面を開く。
+     合わせ方は、その画面の拡大縮小スライダーと位置調整で決める
+     （モード選択は無い）。「パレットを固定する」チェックは、調整画面で
+     絵を拡縮するときに効く。サイズ入力は共通のキャンバスサイズ欄を
+     そのまま使う */
   /* 色変換のプレビュー表示中なら、先に元の絵へ戻してから
-     手動のサイズ変更に入る（プレビューの色が切り取り画面や確定結果に
+     手動のサイズ変更に入る（プレビューの色が調整画面や確定結果に
      混ざらないようにするため） */
   endLevelPreview();
   var nw = clamp(Math.round(+$('inW').value) || S.w, 1, 640);
   var nh = clamp(Math.round(+$('inH').value) || S.h, 1, 640);
   if (nw === S.w && nh === S.h){ toast('すでに ' + nw + '×' + nh + ' です'); return; }
-  var modeEl = document.querySelector('input[name="resizeMode"]:checked');
-  if (modeEl && modeEl.value === 'scale'){ scaleResize(nw, nh); return; }
-  requestCanvasResize(nw, nh, null);
+  openResizeAdjust(nw, nh, null);
 });
 
 /* ================= 機種プリセット =================
    色域と解像度は分かれている：
    ・色域は、機種を選んだ時点で即時に有効になる（現在の絵もその色域へ
      変換される。プレビューという状態は持たない）
-   ・解像度は「解像度を合わせる」ボタンを押したときだけ変わる。
-     サイズの合わせ方は「切り取り・余白で合わせる」チェックで切り替える：
-     OFF（初期値）＝等倍率拡縮＋切り落とし。絵を縦横同じ倍率で、
-     プリセットの枠を覆う大きさまで拡縮し（倍率は
-     max(目標幅/元幅, 目標高さ/元高さ)、リサンプルは多数決）、
-     はみ出した分を切り落として目標サイズにする。はみ出しがある場合は
-     クロップ画面で切り取り位置を決める（対象は拡縮後の絵、初期位置は
-     中央）。はみ出しが無い（アスペクト比が一致する）場合はクロップ
-     画面を出さず即確定する
-     ON＝サイズ変更と同じ入口（requestCanvasResize）を通り、
-     等倍率拡縮なしで余白追加／切り落としで合わせ、比率が変われば
-     クロップ画面が出る
+   ・解像度は「解像度を合わせる」ボタンを押したときだけ変わる。押すと
+     手動のサイズ変更と同じ「キャンバスサイズの調整」画面が開き、
+     拡大縮小と位置をプレビューで確認してから確定する
    色域の適用も解像度変更も、それぞれ履歴1回分で戻せる */
 /* 全22機種。選択欄（optgroup）と同じくメーカー別にまとめ、各メーカー内は
    発売年順に並べる。colors が null の機種は同時色数の減色を行わず、
@@ -3067,7 +3216,7 @@ var PRESETS = {
 };
 /* 指定サイズ（w×h）のフレームを合成したキャンバス。flattenCanvas は
    現在のキャンバスサイズ専用なので、まだ適用前の拡縮後の絵（S.w/S.h と
-   違う大きさ）をクロップ画面に表示するためにこちらを使う */
+   違う大きさ）をサイズ調整画面に表示するためにこちらを使う */
 function flattenFrameWH(frame, w, h){
   var c = document.createElement('canvas'); c.width = w; c.height = h;
   var ctx = c.getContext('2d');
@@ -3083,66 +3232,7 @@ function flattenFrameWH(frame, w, h){
   }
   return c;
 }
-/* 「解像度を合わせる」（拡縮方式）の確定処理。拡縮後の絵（sw×sh）を
-   オフセット（dx, dy）で切り取って目標サイズにする。色域はここでは
-   触らない（機種を選んだ時点で適用済み）。履歴はここで1回だけ積む
-   ので、解像度変更が「戻す」1回で戻る */
-function commitPresetScaled(preset, scaledFrames, sw, sh, dx, dy){
-  if (S.playing) stopPlay();
-  pushUndo();
-  var nw = preset.w, nh = preset.h;
-  var nf = scaledFrames.map(function(frame){
-    var nl = frame.layers.map(function(L){
-      return { data: offsetCopyData(L.data, sw, sh, nw, nh, dx, dy), visible: L.visible, opacity: L.opacity, name: L.name };
-    });
-    return { layers: nl, active: frame.active };
-  });
-  S.w = nw; S.h = nh; S.frames = nf;
-  S.cursor.x = clamp(S.cursor.x, 0, nw - 1); S.cursor.y = clamp(S.cursor.y, 0, nh - 1);
-  $('inW').value = nw; $('inH').value = nh;
-  renderLayerPanel();
-  fitZoom();
-  syncPresetUI();
-  toast(preset.name + 'の解像度に合わせました（' + nw + '×' + nh + '、「戻す」で戻せます）');
-}
-/* 「解像度を合わせる」（拡縮方式）：絵を縦横同じ倍率で、プリセットの枠を
-   覆う大きさまで多数決リサンプルで拡縮する。目標サイズへそのまま
-   リサンプルするとアスペクト比が違うときに絵が潰れる／伸びるため、
-   倍率は max(目標幅/元幅, 目標高さ/元高さ) とし、拡縮後の大きさは
-   両辺とも目標以上になる。はみ出しが無ければそのまま確定し、
-   はみ出しがあれば拡縮後の絵を対象にクロップ画面で切り取り位置を
-   決めてから確定する（キャンセルで解像度変更全体を中止する）。
-   リサンプルは手動の「絵を拡縮する」と同じ majorityResampleData を使う
-   （パレット固定チェックには影響されない）。色は変えない */
-function applyPresetScale(preset){
-  if (S.playing) stopPlay();
-  var nw = preset.w, nh = preset.h;
-  var oldW = S.w, oldH = S.h;
-  var factor = Math.max(nw / oldW, nh / oldH);
-  /* 浮動小数点の誤差で目標より1ドット小さくならないよう切り上げ側に寄せ、
-     アスペクト比が一致する場合はぴったり目標サイズになるようにする */
-  var sw = Math.max(nw, Math.ceil(oldW * factor - 1e-6));
-  var sh = Math.max(nh, Math.ceil(oldH * factor - 1e-6));
-  var scaled = S.frames.map(function(frame){
-    var nl = frame.layers.map(function(L){
-      return { data: majorityResampleData(L.data, oldW, oldH, sw, sh), visible: L.visible, opacity: L.opacity, name: L.name };
-    });
-    return { layers: nl, active: clamp(frame.active, 0, nl.length - 1) };
-  });
-  if (sw === nw && sh === nh){
-    commitPresetScaled(preset, scaled, sw, sh, 0, 0);
-    return;
-  }
-  /* 切り取り画面は位置決め専用：拡縮後の絵をそのまま出す（色域は
-     機種を選んだ時点で適用済みで、この画面では色を変えない） */
-  var src = {
-    w: sw, h: sh,
-    canvas: flattenFrameWH(scaled[S.cur], sw, sh),
-    status: '現在 ' + oldW + '×' + oldH + ' → 拡縮後 ' + sw + '×' + sh + ' → ' + preset.name + 'の解像度 ' + nw + '×' + nh,
-    info: '縦横同じ倍率で拡縮した絵です。新しいキャンバスの枠を、拡縮後の絵の上で動かして残す範囲を決めてください。枠は、プレビューのドラッグ・下の矢印ボタン・PCの矢印キーで動かせます。枠の外側は切り落とされます。色はこの画面では変えません。'
-  };
-  openCrop(nw, nh, function(dx, dy){ commitPresetScaled(preset, scaled, sw, sh, dx, dy); }, src);
-}
+
 /* プリセット欄の状態表示（SGBパレット欄の出し分けと、有効な色域の
    注記）を現在の状態に合わせる。Undo／Redo・解像度変更・プロジェクト
    読み込みの後にも呼ばれる */
@@ -3155,7 +3245,7 @@ function syncPresetUI(){
   var p = key ? PRESETS[key] : null;
   if (p){
     el.style.display = '';
-    el.textContent = p.name + 'の色域（' + presetColorDesc(p) + '）が有効です。このまま描く色も、書き出す画像も、この色域に合います。カラーレベル／コントラストを動かすと、今の絵へ補正がそのまま適用されます（「戻す」で戻せます）。解像度は現在 ' + S.w + '×' + S.h + ' です。';
+    el.textContent = p.name + 'の色域（' + presetColorDesc(p) + '）が有効です。このまま描く色も、書き出す画像も、この色域に合います。カラーレベル／コントラストを動かすと、今の絵へ補正がそのまま適用されます。解像度は現在 ' + S.w + '×' + S.h + ' です。';
   } else {
     el.style.display = 'none';
   }
@@ -3208,7 +3298,7 @@ $('presetSel').addEventListener('change', function(){
   applyPresetColorSteps(p);
   syncPresetUI();
   render();
-  toast(p.name + 'の色域を適用しました（' + presetColorDesc(p) + '）。解像度は ' + S.w + '×' + S.h + ' のままです（「戻す」で戻せます）');
+  toast(p.name + 'の色域を適用しました（' + presetColorDesc(p) + '）。解像度は ' + S.w + '×' + S.h + ' のままです');
 });
 /* パレット選択欄（SGBプリセット欄）へ選択肢を投入する。SGBは
    メニュー番号（1〜4）のグループで分ける */
@@ -3295,22 +3385,42 @@ function handlePresetLevelContrast(kind, v){
       base: S.frames.map(function(fr){
         return fr.layers.map(function(L){ return L.data.slice(); });
       }),
+      /* 適用範囲もジェスチャ開始時点で固定する：'layer' の間は、
+         開始時点のフレーム・レイヤーだけを対象にする */
+      scoped: convScope() === 'layer',
+      fi: S.cur, li: curFrame().active,
       startLevel: colorLevel, startContrast: colorContrast
     };
   }
   if (kind === 'level'){ colorLevel = +v; syncLevelSliders(); }
   else { colorContrast = +v; syncContrastSliders(); }
   var g = levelGesture;
-  S.frames.forEach(function(fr, fi){
-    fr.layers.forEach(function(L, li){
-      var src = g.base[fi] && g.base[fi][li];
-      if (src && src.length === L.data.length) L.data = src.slice();
+  /* 対象レイヤーの一覧（適用範囲が 'layer' のときは開始時点の
+     1レイヤーだけ。それ以外は全フレーム・全レイヤー） */
+  var tgts = [];
+  if (g.scoped){
+    var gfr = S.frames[g.fi];
+    if (gfr && gfr.layers[g.li]) tgts.push({ fi: g.fi, li: g.li, L: gfr.layers[g.li] });
+  } else {
+    S.frames.forEach(function(fr, fi){
+      fr.layers.forEach(function(L, li){ tgts.push({ fi: fi, li: li, L: L }); });
     });
+  }
+  if (!tgts.length){ render(); return; }
+  tgts.forEach(function(t){
+    var src = g.base[t.fi] && g.base[t.fi][t.li];
+    if (src && src.length === t.L.data.length) t.L.data = src.slice();
   });
   var spec = activeGamutSpec(colorLevel - g.startLevel, colorContrast - g.startContrast);
-  var datas = [];
-  S.frames.forEach(function(fr){ fr.layers.forEach(function(L){ datas.push(L.data); }); });
-  convertColorDatas(datas, S.w, S.h, spec, frameGroupsFor(S.frames));
+  var datas = tgts.map(function(t){ return t.L.data; });
+  var groups;
+  if (g.scoped){
+    var L0 = tgts[0].L;
+    groups = [[{ i: 0, visible: L0.visible !== false, opacity: (L0.opacity == null ? 100 : L0.opacity) }]];
+  } else {
+    groups = frameGroupsFor(S.frames);
+  }
+  convertColorDatas(datas, S.w, S.h, spec, groups);
   render();
 }
 /* スライダーの確定（change）でジェスチャを終える。次に動かしたときは
@@ -3412,66 +3522,134 @@ $('btnPreset').addEventListener('click', function(){
   if (!p){ toast('機種プリセットを選んでください'); return; }
   /* このボタンは解像度専用：色域は機種を選んだ時点で適用済みで、
      ここでは色に一切触らない。色変換のプレビュー表示中なら、先に
-     元の絵へ戻してから解像度変更のフロー（切り取り画面を含む）を通す */
+     元の絵へ戻してから解像度変更のフロー（サイズ調整画面を含む）を
+     通す。開く画面・初期倍率の規則は手動のサイズ変更とまったく同じ */
   if (S.w === p.w && S.h === p.h){ toast('すでに ' + p.name + 'の解像度（' + p.w + '×' + p.h + '）です'); return; }
   previewRequest = null;
   endLevelPreview();
-  var cropEl = $('presetCropPad');
-  if (cropEl && cropEl.checked){
-    requestCanvasResize(p.w, p.h, p);
-  } else {
-    applyPresetScale(p);
-  }
+  openResizeAdjust(p.w, p.h, p);
 });
 
-/* ================= クロップ画面 =================
-   今の絵（現在のフレームの合成結果）の上に新しいキャンバスの枠を重ね、
-   枠の位置をドラッグ／十字キーで決める。状態は「元の絵の左上が新しい
-   キャンバスのどこに来るか」というオフセット（dx, dy）で持ち、表示側は
-   枠の左上＝元の絵の座標で (-dx, -dy) として描く。
-   枠が動きうる範囲全体（ワールド）を固定して描くので、ドラッグ中も
-   絵の位置はぶれない。決定で onOk(dx, dy)、キャンセルでは何も変えない。
-   src を渡すと、現在のキャンバスではなく、その画像（{ w, h, canvas }）を
-   元の絵として使う（プリセットの等倍率拡縮で生まれた、まだ適用前の
-   拡縮後の絵を切り取る場合）。src.status があれば状態表示（要点）を、
-   src.info があれば「？」の先の説明文を差し替える */
-var cropState = null;
-function openCrop(nw, nh, onOk, src){
-  var ow = src ? src.w : S.w, oh = src ? src.h : S.h;
-  var dxMin = Math.min(0, nw - ow), dxMax = Math.max(0, nw - ow);
-  var dyMin = Math.min(0, nh - oh), dyMax = Math.max(0, nh - oh);
-  cropState = {
-    nw: nw, nh: nh, ow: ow, oh: oh, onOk: onOk,
-    srcCanvas: src ? src.canvas : null,
-    dx: Math.round((nw - ow) / 2), dy: Math.round((nh - oh) / 2),
-    dxMin: dxMin, dxMax: dxMax, dyMin: dyMin, dyMax: dyMax,
-    wx0: Math.min(0, -dxMax), wy0: Math.min(0, -dyMax),
-    wx1: Math.max(ow, -dxMin + nw), wy1: Math.max(oh, -dyMin + nh),
-    scX: 1, scY: 1
+/* ================= キャンバスサイズの調整画面 =================
+   サイズ変更（手動・プリセット共通）は即適用せず、この画面で新しい
+   キャンバスの枠と今の絵（現在フレームの合成結果）を重ねて表示し、
+   拡大縮小と位置を決めてから確定する。読み込みの調整画面と同じ
+   使い回しで、モード選択は無い：
+   ・大きさは拡大縮小スライダーで変える：10%〜400%（1%刻み）、
+     縦横比は維持する。倍率100%なら原寸配置（はみ出しは切り落とし、
+     不足分は透明）と同じ結果になり、倍率を上げれば絵が枠からはみ出
+     して切り落とされる（実質カバー）。拡縮のリサンプルは従来どおり
+     エリア多数決＋「パレットを固定する」の効果を維持する
+   ・初期倍率は読み込みの調整と同じ規則：絵が新しいキャンバスより
+     大きい場合は全体が収まる倍率、収まる場合は100%。初期位置は中央
+   ・位置はプレビューのドラッグと矢印ボタン／PCの矢印キー（1ドット
+     移動・長押し連続）で調整できる。位置は「拡縮後の絵の左上が新しい
+     キャンバスのどこに来るか」というオフセット（dx, dy）で持ち、
+     絵がキャンバスより大きい軸でははみ出しを許し、小さい軸では
+     キャンバスの内側に収める（読み込みの調整と同じ決め方）
+   「決定」で全フレーム・全レイヤーへ履歴1回分で適用し、「キャンセル」
+   では変更自体を中止する。色はこの画面では変えない（カラーレベル／
+   コントラストの調整は変換パネル側で行う） */
+var rszState = null;
+function openResizeAdjust(nw, nh, preset){
+  if (S.playing) stopPlay();
+  var ow = S.w, oh = S.h;
+  /* 初期倍率：絵が新しいキャンバスより大きい場合は全体が収まる倍率
+     （切り捨てて確実に収める）、収まる場合は100% */
+  var scale = 100;
+  if (ow > nw || oh > nh){
+    scale = clamp(Math.floor(Math.min(nw / ow, nh / oh) * 100), 10, 400);
+  }
+  rszState = {
+    nw: nw, nh: nh, preset: preset || null,
+    ow: ow, oh: oh, scale: scale,
+    pw: 0, ph: 0, dx: 0, dy: 0,
+    wx0: 0, wy0: 0, ww: 1, wh: 1,
+    scaledFrames: null, scaledCanvas: null, scaledFor: -1, palCount: 0
   };
-  /* 常時表示は状態表示だけ：cropInfo には「何をどう変換するか」の
-     要点（変換前サイズ→拡縮後サイズ・色域名・枠＝新しいキャンバス
-     サイズ）を短く出し、操作方法などの説明文は「？」の先の
-     cropHelp に置く（初期状態では出ない。パネルと同じ方式）。
-     src.status があればそれを、無ければサイズだけの要点を出す */
-  $('cropInfo').textContent = (src && src.status) ? src.status :
-    '現在 ' + ow + '×' + oh + ' → 新しいキャンバス ' + nw + '×' + nh;
-  $('cropHelp').textContent = (src && src.info) ? src.info :
-    '新しいキャンバスの枠を、今の絵の上で動かして残す範囲を決めてください。枠は、プレビューのドラッグ・下の矢印ボタン・PCの矢印キーで動かせます。枠の外側は切り落とされ、枠が絵より大きい部分は透明の余白になります。';
-  /* この画面は位置決め専用（カラーレベル／コントラストの調整は
-     変換パネル側で行う） */
-  openModal('cropModal');
-  drawCrop();
+  $('rszScale').value = scale;
+  $('rszInfo').textContent = preset
+    ? '現在 ' + ow + '×' + oh + ' → ' + preset.name + 'の解像度 ' + nw + '×' + nh
+    : '現在 ' + ow + '×' + oh + ' → 新しいキャンバス ' + nw + '×' + nh;
+  rszUpdateScaleLabel();
+  rszResetPos();
+  openModal('rszModal');
+  drawRsz();
 }
-function drawCrop(){
-  if (!cropState) return;
-  var cs = cropState;
-  var cv = $('cropView'), ctx = cv.getContext('2d');
-  var ww = cs.wx1 - cs.wx0, wh = cs.wy1 - cs.wy0;
+/* 現在の倍率での拡縮後のピクセルサイズを状態へ反映する */
+function rszDims(){
+  var st = rszState;
+  st.pw = Math.max(1, Math.round(st.ow * st.scale / 100));
+  st.ph = Math.max(1, Math.round(st.oh * st.scale / 100));
+}
+function rszClampPos(){
+  var st = rszState;
+  st.dx = clamp(st.dx, Math.min(0, st.nw - st.pw), Math.max(0, st.nw - st.pw));
+  st.dy = clamp(st.dy, Math.min(0, st.nh - st.ph), Math.max(0, st.nh - st.ph));
+}
+function rszResetPos(){
+  var st = rszState;
+  rszDims();
+  st.dx = Math.round((st.nw - st.pw) / 2);
+  st.dy = Math.round((st.nh - st.ph) / 2);
+  rszClampPos();
+}
+/* スライダー横の倍率（%）と拡縮後のピクセルサイズ表示を更新する */
+function rszUpdateScaleLabel(){
+  var st = rszState;
+  if (!st) return;
+  rszDims();
+  $('rszScalePct').textContent = st.scale + '%';
+  $('rszScaleSize').textContent = '（' + st.pw + '×' + st.ph + '）';
+}
+/* 現在の倍率での拡縮結果（全フレーム・全レイヤー）を遅延計算して
+   使い回す。リサンプルは従来の拡縮処理と同一：「パレットを固定する」が
+   ON のときは絵の使用色へロックしたリサンプル（paletteLockedResample）、
+   OFF のときはエリア多数決（majorityResampleData）。倍率100%のときは
+   リサンプルせず元のピクセルをそのまま使う（原寸配置と完全に同じ
+   結果にするため）。パレット固定でロックする色が無い（全面透明の）絵は、
+   多数決でも結果が同じ（全面透明）ためそちらへ寄せる */
+function rszScaled(){
+  var st = rszState;
+  if (st.scaledFrames && st.scaledFor === st.scale) return st.scaledFrames;
+  rszDims();
+  var pw = st.pw, ph = st.ph, oldW = S.w, oldH = S.h;
+  var palette = null, index = null;
+  st.palCount = 0;
+  if (st.scale !== 100 && $('palLockToggle').checked){
+    var used = collectUsedColors();
+    if (used.colors.length){ palette = used.colors; index = used.index; st.palCount = palette.length; }
+  }
+  st.scaledFrames = S.frames.map(function(frame){
+    var nl = frame.layers.map(function(L){
+      var nd;
+      if (st.scale === 100) nd = L.data.slice();
+      else if (palette) nd = paletteLockedResample(L.data, oldW, oldH, pw, ph, palette, index);
+      else nd = majorityResampleData(L.data, oldW, oldH, pw, ph);
+      return { data: nd, visible: L.visible, opacity: L.opacity, name: L.name };
+    });
+    return { layers: nl, active: clamp(frame.active, 0, nl.length - 1) };
+  });
+  st.scaledCanvas = flattenFrameWH(st.scaledFrames[S.cur], pw, ph);
+  st.scaledFor = st.scale;
+  return st.scaledFrames;
+}
+function drawRsz(){
+  var st = rszState;
+  if (!st) return;
+  rszScaled();
+  var cv = $('rszView'), ctx = cv.getContext('2d');
+  /* 表示範囲（ワールド）は、位置が動きうる範囲全体で固定する。
+     ドラッグ中に絵の位置や縮尺がぶれないようにするため（読み込みの
+     調整画面と同じ考え方） */
+  var wx0 = Math.min(0, st.nw - st.pw), wy0 = Math.min(0, st.nh - st.ph);
+  var wx1 = Math.max(st.nw, st.pw), wy1 = Math.max(st.nh, st.ph);
+  var ww = wx1 - wx0, wh = wy1 - wy0;
+  st.wx0 = wx0; st.wy0 = wy0; st.ww = ww; st.wh = wh;
   var scale = Math.min(440 / ww, 440 / wh, 16);
   cv.width = Math.max(1, Math.round(ww * scale));
   cv.height = Math.max(1, Math.round(wh * scale));
-  cs.scX = cv.width / ww; cs.scY = cv.height / wh;
+  var scX = cv.width / ww, scY = cv.height / wh;
   /* 市松模様（透明部分） */
   ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--checker1') || '#fff';
   ctx.fillRect(0, 0, cv.width, cv.height);
@@ -3479,12 +3657,12 @@ function drawCrop(){
   var csq = 8;
   for (var y = 0; y * csq < cv.height; y++) for (var x = 0; x * csq < cv.width; x++)
     if ((x + y) % 2 === 0) ctx.fillRect(x * csq, y * csq, csq, csq);
-  /* 元の絵（現在のフレームの合成結果。src 指定時はその画像） */
+  /* 拡縮後の絵（現在フレームの合成結果） */
   ctx.imageSmoothingEnabled = false;
-  ctx.drawImage(cs.srcCanvas || flattenCanvas(curFrame()), (0 - cs.wx0) * cs.scX, (0 - cs.wy0) * cs.scY, cs.ow * cs.scX, cs.oh * cs.scY);
-  /* 枠の外側を暗くして、枠を縁取る */
-  var fx = (-cs.dx - cs.wx0) * cs.scX, fy = (-cs.dy - cs.wy0) * cs.scY;
-  var fw = cs.nw * cs.scX, fh = cs.nh * cs.scY;
+  ctx.drawImage(st.scaledCanvas, (st.dx - wx0) * scX, (st.dy - wy0) * scY, st.pw * scX, st.ph * scY);
+  /* 新しいキャンバスの外側を暗くして、枠を縁取る */
+  var fx = (0 - wx0) * scX, fy = (0 - wy0) * scY;
+  var fw = st.nw * scX, fh = st.nh * scY;
   ctx.fillStyle = 'rgba(20,18,12,.45)';
   ctx.fillRect(0, 0, cv.width, fy);
   ctx.fillRect(0, fy + fh, cv.width, Math.max(0, cv.height - fy - fh));
@@ -3492,55 +3670,295 @@ function drawCrop(){
   ctx.fillRect(fx + fw, fy, Math.max(0, cv.width - fx - fw), fh);
   ctx.strokeStyle = '#c8401f'; ctx.lineWidth = 2;
   ctx.strokeRect(fx + 1, fy + 1, Math.max(2, fw - 2), Math.max(2, fh - 2));
-  $('cropPos').textContent = '枠の左上：横 ' + (-cs.dx) + '、縦 ' + (-cs.dy) + '（元の絵の左上が 0、0 です）';
+  $('rszPos').textContent = '絵の左上：横 ' + st.dx + '、縦 ' + st.dy + '（新しいキャンバスの左上が 0、0 です）';
 }
-function moveCropFrame(mx, my){
-  if (!cropState) return;
-  /* 枠を押した方向へ1ドット動かす（枠の左上が増える方向は dx が減る方向） */
-  cropState.dx = clamp(cropState.dx - mx, cropState.dxMin, cropState.dxMax);
-  cropState.dy = clamp(cropState.dy - my, cropState.dyMin, cropState.dyMax);
-  drawCrop();
+function moveRsz(mx, my){
+  if (!rszState) return;
+  rszState.dx += mx; rszState.dy += my;
+  rszClampPos();
+  drawRsz();
 }
+/* 拡大縮小スライダー：拡縮は絵の中心を基準に行う（中心の位置は
+   変えずに大きさだけ変える）。位置がはみ出す場合は従来どおり
+   クランプする */
+$('rszScale').addEventListener('input', function(){
+  if (!rszState) return;
+  var v = clamp(Math.round(+this.value) || 100, 10, 400);
+  if (v === rszState.scale){ rszUpdateScaleLabel(); return; }
+  var st = rszState;
+  rszDims();
+  var cx = st.dx + st.pw / 2, cy = st.dy + st.ph / 2;
+  st.scale = v;
+  rszDims();
+  st.dx = Math.round(cx - st.pw / 2);
+  st.dy = Math.round(cy - st.ph / 2);
+  rszClampPos();
+  rszUpdateScaleLabel();
+  drawRsz();
+});
 (function(){
-  var cv = $('cropView');
+  var cv = $('rszView');
   var drag = null;
   cv.addEventListener('pointerdown', function(e){
-    if (!cropState) return;
+    if (!rszState) return;
     e.preventDefault();
     cv.setPointerCapture(e.pointerId);
-    drag = { x: e.clientX, y: e.clientY, dx: cropState.dx, dy: cropState.dy };
+    drag = { x: e.clientX, y: e.clientY, dx: rszState.dx, dy: rszState.dy };
   });
   cv.addEventListener('pointermove', function(e){
-    if (!drag || !cropState) return;
-    var cs = cropState;
+    if (!drag || !rszState) return;
+    var st = rszState;
     var r = cv.getBoundingClientRect();
     if (!r.width || !r.height) return;
-    var ddx = Math.round((e.clientX - drag.x) / (r.width / (cs.wx1 - cs.wx0)));
-    var ddy = Math.round((e.clientY - drag.y) / (r.height / (cs.wy1 - cs.wy0)));
-    /* 枠が指・マウスについてくる：右へ引くと枠は右へ動く（dxは減る） */
-    cs.dx = clamp(drag.dx - ddx, cs.dxMin, cs.dxMax);
-    cs.dy = clamp(drag.dy - ddy, cs.dyMin, cs.dyMax);
-    drawCrop();
+    /* 絵が指・マウスについてくる：右へ引くと絵は右へ動く */
+    st.dx = drag.dx + Math.round((e.clientX - drag.x) / (r.width / st.ww));
+    st.dy = drag.dy + Math.round((e.clientY - drag.y) / (r.height / st.wh));
+    rszClampPos();
+    drawRsz();
   });
   function end(){ drag = null; }
   cv.addEventListener('pointerup', end);
   cv.addEventListener('pointercancel', end);
 })();
-document.querySelectorAll('#cropPadRow [data-cdir]').forEach(function(b){
-  var d = b.dataset.cdir;
+document.querySelectorAll('#rszPadRow [data-rdir]').forEach(function(b){
+  var d = b.dataset.rdir;
   var mx = d === 'left' ? -1 : d === 'right' ? 1 : 0;
   var my = d === 'up' ? -1 : d === 'down' ? 1 : 0;
-  holdable(b, function(){ moveCropFrame(mx, my); });
+  holdable(b, function(){ moveRsz(mx, my); });
 });
-$('cropOk').addEventListener('click', function(){
-  if (!cropState) return;
-  var cs = cropState; cropState = null;
+/* 確定処理。拡縮結果（現在の倍率で計算済みのもの）を、新しいキャンバスへ
+   オフセット付きで配置して全フレーム・全レイヤーへ履歴1回分で適用する。
+   色域はここでは触らない（プリセットの色域は機種を選んだ時点で
+   適用済みで、この確定は解像度だけを変える） */
+function commitResizeAdjust(st, finalFrames){
+  if (S.playing) stopPlay();
+  pushUndo();
+  S.w = st.nw; S.h = st.nh; S.frames = finalFrames;
+  S.cursor.x = clamp(S.cursor.x, 0, st.nw - 1); S.cursor.y = clamp(S.cursor.y, 0, st.nh - 1);
+  $('inW').value = st.nw; $('inH').value = st.nh;
+  renderLayerPanel();
+  fitZoom();
+  syncPresetUI();
+  if (st.preset){
+    toast(st.preset.name + 'の解像度に合わせました（' + st.nw + '×' + st.nh + '）');
+  } else if (st.palCount > 0){
+    toast('絵で使われている ' + st.palCount + ' 色を固定したまま、サイズを ' + st.nw + '×' + st.nh + ' に変更しました（補間なしのドット単位で変換していますので、にじみのないくっきりした結果になります）');
+  } else {
+    toast('サイズを ' + st.nw + '×' + st.nh + ' に変更しました');
+  }
+}
+$('rszOk').addEventListener('click', function(){
+  if (!rszState) return;
+  var st = rszState;
+  /* 配置（拡縮後のフレームとオフセット）を先に確定させてから
+     状態を破棄する */
+  var scaled = rszScaled();
+  var pw = st.pw, ph = st.ph, dx = st.dx, dy = st.dy;
+  var finalFrames = scaled.map(function(frame){
+    var nl = frame.layers.map(function(L){
+      return { data: offsetCopyData(L.data, pw, ph, st.nw, st.nh, dx, dy), visible: L.visible, opacity: L.opacity, name: L.name };
+    });
+    return { layers: nl, active: frame.active };
+  });
+  rszState = null;
   closeModals();
-  cs.onOk(cs.dx, cs.dy);
+  commitResizeAdjust(st, finalFrames);
 });
-$('cropCancel').addEventListener('click', function(){ cropState = null; closeModals(); });
-/* 切り取り画面は位置決め専用：カラーレベル／コントラストのスライダーは
-   置かない（調整は変換パネルのプリセット欄／減色欄で行う） */
+$('rszCancel').addEventListener('click', function(){ rszState = null; closeModals(); });
+
+/* ================= 読み込みの調整画面 =================
+   静止画を既存ドキュメントへ読み込むとき、画像サイズ（640上限で丸めた
+   後のサイズ）が現在のキャンバスと異なる場合に開く（開く側の判定は
+   finishLoad）。現在のキャンバス（現在のフレームの合成結果）の上に
+   読み込む画像を重ねて表示する。
+   ・大きさは拡大縮小スライダーで変える：10%〜400%（1%刻み）、
+     縦横比は維持する。拡縮は画像の中心を基準に行い、リサンプルは
+     アプリ既存のリサイズ処理（majorityResampleData：エリア多数決）
+     を使う。初期値：画像がキャンバスより大きい場合は全体が収まる
+     倍率、収まる場合は100%
+   ・初期位置は中央。位置はプレビューのドラッグと矢印ボタン／PCの
+     矢印キー（1ドット移動・長押し連続）で調整できる。位置は
+     「画像の左上がキャンバスのどこに来るか」というオフセット
+     （dx, dy）で持ち、画像がキャンバスより大きい軸でははみ出しを
+     許し、小さい軸ではキャンバスの内側に収める（サイズ調整画面の
+     オフセットと同じ決め方）
+   ・「決定」で現在のフレームへ新規レイヤーとして追加する（配置は
+     サイズ変更と同じ offsetCopyData で行い、履歴は1回分）。
+     「キャンセル」で読み込み自体を中止する */
+var impAdj = null;
+function openImportAdjust(tw, th){
+  var q = rawPixelsFromSource(tw, th);
+  if (!q) return false;
+  /* 初期倍率：画像がキャンバスより大きい場合は全体が収まる倍率
+     （切り捨てて確実に収める）、収まる場合は100% */
+  var scale = 100;
+  if (tw > S.w || th > S.h){
+    scale = clamp(Math.floor(Math.min(S.w / tw, S.h / th) * 100), 10, 400);
+  }
+  impAdj = {
+    data: q.data, tw: tw, th: th, scale: scale,
+    dx: 0, dy: 0, placed: null, placedScale: 0,
+    wx0: 0, wy0: 0, ww: 1, wh: 1
+  };
+  $('impScale').value = scale;
+  impUpdateScaleLabel();
+  $('impInfo').textContent = '読み込む画像 ' + tw + '×' + th + ' を、現在のキャンバス ' + S.w + '×' + S.h + ' の上に重ねます';
+  impResetPos();
+  openModal('impModal');
+  drawImpAdj();
+  return true;
+}
+/* 現在の倍率での配置サイズとピクセル（拡縮済み）を返す。
+   倍率が変わるまで使い回す */
+function impPlacement(){
+  var st = impAdj;
+  if (st.placed && st.placedScale === st.scale) return st.placed;
+  var pw = Math.max(1, Math.round(st.tw * st.scale / 100));
+  var ph = Math.max(1, Math.round(st.th * st.scale / 100));
+  var data = (pw === st.tw && ph === st.th)
+    ? st.data
+    : majorityResampleData(st.data, st.tw, st.th, pw, ph);
+  st.placed = { pw: pw, ph: ph, data: data, canvas: null };
+  st.placedScale = st.scale;
+  return st.placed;
+}
+/* スライダー横の倍率（%）と拡縮後のピクセルサイズ表示を更新する */
+function impUpdateScaleLabel(){
+  if (!impAdj) return;
+  var p = impPlacement();
+  $('impScalePct').textContent = impAdj.scale + '%';
+  $('impScaleSize').textContent = '（' + p.pw + '×' + p.ph + '）';
+}
+function impClampPos(){
+  var st = impAdj, p = impPlacement();
+  st.dx = clamp(st.dx, Math.min(0, S.w - p.pw), Math.max(0, S.w - p.pw));
+  st.dy = clamp(st.dy, Math.min(0, S.h - p.ph), Math.max(0, S.h - p.ph));
+}
+function impResetPos(){
+  var p = impPlacement();
+  impAdj.dx = Math.round((S.w - p.pw) / 2);
+  impAdj.dy = Math.round((S.h - p.ph) / 2);
+  impClampPos();
+}
+function drawImpAdj(){
+  if (!impAdj) return;
+  var st = impAdj, p = impPlacement();
+  var cv = $('impView'), ctx = cv.getContext('2d');
+  /* 表示範囲（ワールド）は、位置が動きうる範囲全体で固定する。
+     ドラッグ中に絵の位置や縮尺がぶれないようにするため（クロップ
+     画面と同じ考え方） */
+  var wx0 = Math.min(0, S.w - p.pw), wy0 = Math.min(0, S.h - p.ph);
+  var wx1 = Math.max(S.w, p.pw), wy1 = Math.max(S.h, p.ph);
+  var ww = wx1 - wx0, wh = wy1 - wy0;
+  st.wx0 = wx0; st.wy0 = wy0; st.ww = ww; st.wh = wh;
+  var scale = Math.min(440 / ww, 440 / wh, 16);
+  cv.width = Math.max(1, Math.round(ww * scale));
+  cv.height = Math.max(1, Math.round(wh * scale));
+  var scX = cv.width / ww, scY = cv.height / wh;
+  /* 市松模様（透明部分） */
+  ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--checker1') || '#fff';
+  ctx.fillRect(0, 0, cv.width, cv.height);
+  ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--checker2') || '#ccc';
+  var csq = 8;
+  for (var y = 0; y * csq < cv.height; y++) for (var x = 0; x * csq < cv.width; x++)
+    if ((x + y) % 2 === 0) ctx.fillRect(x * csq, y * csq, csq, csq);
+  ctx.imageSmoothingEnabled = false;
+  /* 現在のキャンバス（現在のフレームの合成結果） */
+  ctx.drawImage(flattenCanvas(curFrame()), (0 - wx0) * scX, (0 - wy0) * scY, S.w * scX, S.h * scY);
+  /* 読み込む画像 */
+  if (!p.canvas){
+    p.canvas = document.createElement('canvas');
+    p.canvas.width = p.pw; p.canvas.height = p.ph;
+    p.canvas.getContext('2d').putImageData(new ImageData(new Uint8ClampedArray(p.data), p.pw, p.ph), 0, 0);
+  }
+  ctx.drawImage(p.canvas, (st.dx - wx0) * scX, (st.dy - wy0) * scY, p.pw * scX, p.ph * scY);
+  /* キャンバスの外側を暗くして、キャンバス枠を縁取る（枠の外側に
+     はみ出した部分は切り落とされる） */
+  var fx = (0 - wx0) * scX, fy = (0 - wy0) * scY;
+  var fw = S.w * scX, fh = S.h * scY;
+  ctx.fillStyle = 'rgba(20,18,12,.45)';
+  ctx.fillRect(0, 0, cv.width, fy);
+  ctx.fillRect(0, fy + fh, cv.width, Math.max(0, cv.height - fy - fh));
+  ctx.fillRect(0, fy, fx, fh);
+  ctx.fillRect(fx + fw, fy, Math.max(0, cv.width - fx - fw), fh);
+  ctx.strokeStyle = '#c8401f'; ctx.lineWidth = 2;
+  ctx.strokeRect(fx + 1, fy + 1, Math.max(2, fw - 2), Math.max(2, fh - 2));
+  $('impPos').textContent = '画像の左上：横 ' + st.dx + '、縦 ' + st.dy + '（キャンバスの左上が 0、0 です）';
+}
+function moveImp(mx, my){
+  if (!impAdj) return;
+  impAdj.dx += mx; impAdj.dy += my;
+  impClampPos();
+  drawImpAdj();
+}
+/* 拡大縮小スライダー：拡縮は画像の中心を基準に行う（中心の位置は
+   変えずに大きさだけ変える）。位置がはみ出す場合は従来どおり
+   クランプする */
+$('impScale').addEventListener('input', function(){
+  if (!impAdj) return;
+  var v = clamp(Math.round(+this.value) || 100, 10, 400);
+  if (v === impAdj.scale){ impUpdateScaleLabel(); return; }
+  var st = impAdj, old = impPlacement();
+  var cx = st.dx + old.pw / 2, cy = st.dy + old.ph / 2;
+  st.scale = v;
+  var p = impPlacement();
+  st.dx = Math.round(cx - p.pw / 2);
+  st.dy = Math.round(cy - p.ph / 2);
+  impClampPos();
+  impUpdateScaleLabel();
+  drawImpAdj();
+});
+(function(){
+  var cv = $('impView');
+  var drag = null;
+  cv.addEventListener('pointerdown', function(e){
+    if (!impAdj) return;
+    e.preventDefault();
+    cv.setPointerCapture(e.pointerId);
+    drag = { x: e.clientX, y: e.clientY, dx: impAdj.dx, dy: impAdj.dy };
+  });
+  cv.addEventListener('pointermove', function(e){
+    if (!drag || !impAdj) return;
+    var st = impAdj;
+    var r = cv.getBoundingClientRect();
+    if (!r.width || !r.height) return;
+    /* 画像が指・マウスについてくる：右へ引くと画像は右へ動く */
+    st.dx = drag.dx + Math.round((e.clientX - drag.x) / (r.width / st.ww));
+    st.dy = drag.dy + Math.round((e.clientY - drag.y) / (r.height / st.wh));
+    impClampPos();
+    drawImpAdj();
+  });
+  function end(){ drag = null; }
+  cv.addEventListener('pointerup', end);
+  cv.addEventListener('pointercancel', end);
+})();
+document.querySelectorAll('#impPadRow [data-idir]').forEach(function(b){
+  var d = b.dataset.idir;
+  var mx = d === 'left' ? -1 : d === 'right' ? 1 : 0;
+  var my = d === 'up' ? -1 : d === 'down' ? 1 : 0;
+  holdable(b, function(){ moveImp(mx, my); });
+});
+$('impOk').addEventListener('click', function(){
+  if (!impAdj) return;
+  /* 配置（拡縮後のピクセルとオフセット）を先に確定させてから
+     状態を破棄する */
+  var p = impPlacement();
+  var dx = impAdj.dx, dy = impAdj.dy;
+  impAdj = null;
+  closeModals();
+  if (S.playing) stopPlay();
+  /* 配置はサイズ変更の余白／切り落としと同じ offsetCopyData で行う：
+     キャンバスからはみ出した部分は切り落とされ、足りない部分は
+     透明になる。読み込みは「そのまま取り込み」が原則なので、色域の
+     制限も含めて変換はかけない（従来の読み込みと同じ） */
+  var data = offsetCopyData(p.data, p.pw, p.ph, S.w, S.h, dx, dy);
+  pushUndo();
+  addPixelLayer({ palette: [], data: data }, '読み込み（' + S.srcName + '）', true);
+  renderLayerPanel();
+  render();
+  toast('読み込みました。新しいレイヤーとして追加しました');
+});
+$('impCancel').addEventListener('click', function(){ impAdj = null; closeModals(); });
 
 /* ================= パレット固定でサイズ変更（変換パネルのチェックボックス） =================
    減色とは逆で、パレットは「作る」ものではなく「固定する」ものです。
@@ -3653,45 +4071,17 @@ function paletteLockedResample(data, oldW, oldH, nw, nh, palette, indexMap){
   }
   return out;
 }
-function paletteLockedResize(wIn, hIn){
-  /* ロック集合は色パネルのチップではなく、絵で使われている色そのもの。
-     どの経路で減色・ドット化した絵でも同じ集合にロックされる */
-  var used = collectUsedColors();
-  var palette = used.colors;
-  if (!palette.length){ toast('絵の中に色がありませんでした'); return; }
-  var nw = clamp(Math.round(wIn) || S.w, 1, 640);
-  var nh = clamp(Math.round(hIn) || S.h, 1, 640);
-  if (S.playing) stopPlay();
-  pushUndo();
-  var oldW = S.w, oldH = S.h;
-  var nf = S.frames.map(function(frame){
-    var nl = frame.layers.map(function(L){
-      var nd;
-      if (nw === oldW && nh === oldH){
-        nd = new Uint8ClampedArray(L.data);
-        snapDataToLockedPalette(nd, palette, used.index);
-      } else {
-        nd = paletteLockedResample(L.data, oldW, oldH, nw, nh, palette, used.index);
-      }
-      return { data: nd, visible: L.visible, opacity: L.opacity, name: L.name };
-    });
-    return { layers: nl, active: clamp(frame.active, 0, nl.length - 1) };
-  });
-  S.w = nw; S.h = nh; S.frames = nf;
-  S.cursor.x = clamp(S.cursor.x, 0, nw - 1); S.cursor.y = clamp(S.cursor.y, 0, nh - 1);
-  $('inW').value = nw; $('inH').value = nh;
-  renderLayerPanel();
-  fitZoom();
-  syncPresetUI();
-  toast('絵で使われている ' + palette.length + ' 色を固定したまま、サイズを ' + nw + '×' + nh + ' に変更しました（補間なしのドット単位で変換していますので、にじみのないくっきりした結果になります。「戻す」で戻せます）');
-}
+/* パレット固定のロック集合は色パネルのチップではなく、絵で使われている
+   色そのもの（collectUsedColors）。どの経路で減色・ドット化した絵でも
+   同じ集合にロックされる。適用はサイズ調整画面の拡縮
+   （rszScaled）が担う */
 
-/* ================= サイズ変更（絵を拡縮する） =================
-   画像全体を新しいサイズへ拡縮する。リサンプルはパレット固定リサイズと
-   同じ「エリア多数決」（補間なし・同数は中心優先）で、新しい色は作らない。
-   「パレットを固定する」ONのときは、従来のパレット固定リサイズ
-   （paletteLockedResize）そのものを使い、結果も従来と同一になる。
-   クロップ画面は出さず、全フレーム・全レイヤーへ履歴1回分で適用する */
+/* ================= 拡縮リサンプル（エリア多数決） =================
+   画像全体を新しいサイズへ拡縮する共通処理。リサンプルは「エリア
+   多数決」（補間なし・同数は中心優先）で、新しい色は作らない。
+   サイズ調整画面の拡縮と読み込みの調整画面が使う。
+   「パレットを固定する」ONのときは paletteLockedResample 側を使い、
+   結果は従来のパレット固定リサイズと同一になる */
 function majorityResampleData(data, oldW, oldH, nw, nh){
   var out = new Uint8ClampedArray(nw * nh * 4);
   var counts = new Map();
@@ -3729,26 +4119,7 @@ function majorityResampleData(data, oldW, oldH, nw, nh){
   }
   return out;
 }
-function scaleResize(nw, nh){
-  /* パレット固定ONのときは従来のパレット固定リサイズと同一の結果にする */
-  if ($('palLockToggle').checked){ paletteLockedResize(nw, nh); return; }
-  if (S.playing) stopPlay();
-  pushUndo();
-  var oldW = S.w, oldH = S.h;
-  var nf = S.frames.map(function(frame){
-    var nl = frame.layers.map(function(L){
-      return { data: majorityResampleData(L.data, oldW, oldH, nw, nh), visible: L.visible, opacity: L.opacity, name: L.name };
-    });
-    return { layers: nl, active: clamp(frame.active, 0, nl.length - 1) };
-  });
-  S.w = nw; S.h = nh; S.frames = nf;
-  S.cursor.x = clamp(S.cursor.x, 0, nw - 1); S.cursor.y = clamp(S.cursor.y, 0, nh - 1);
-  $('inW').value = nw; $('inH').value = nh;
-  renderLayerPanel();
-  fitZoom();
-  syncPresetUI();
-  toast('絵全体を ' + nw + '×' + nh + ' に拡縮しました（「戻す」で戻せます）');
-}
+
 
 /* ================= 縦横比に合わせた連動入力 =================
    横と縦のペアは、片方を入力するともう片方が比率に合わせて自動で計算される。
@@ -3820,11 +4191,13 @@ function renderLayerPanel(){
   if (act) $('layerOpacity').value = act.opacity == null ? 100 : act.opacity;
 }
 function selectLayer(i){
+  if (moveModeBlock()) return;
   var f = curFrame();
   f.active = clamp(i, 0, f.layers.length - 1);
   renderLayerPanel(); render();
 }
 $('btnLayerAdd').addEventListener('click', function(){
+  if (moveModeBlock()) return;
   var f = curFrame();
   pushUndo();
   layerSeq++;
@@ -3834,6 +4207,7 @@ $('btnLayerAdd').addEventListener('click', function(){
   toast('新しいレイヤーを一番上に追加しました');
 });
 $('btnLayerDel').addEventListener('click', function(){
+  if (moveModeBlock()) return;
   var f = curFrame();
   if (f.layers.length <= 1){ toast('最後の1枚のレイヤーは削除できません'); return; }
   var name = f.layers[f.active].name;
@@ -3844,6 +4218,7 @@ $('btnLayerDel').addEventListener('click', function(){
   toast('レイヤー「' + name + '」を削除しました');
 });
 $('btnLayerUp').addEventListener('click', function(){
+  if (moveModeBlock()) return;
   var f = curFrame();
   if (f.active <= 0){ toast('すでに一番上です'); return; }
   pushUndo();
@@ -3854,6 +4229,7 @@ $('btnLayerUp').addEventListener('click', function(){
   renderLayerPanel(); render();
 });
 $('btnLayerDown').addEventListener('click', function(){
+  if (moveModeBlock()) return;
   var f = curFrame();
   if (f.active >= f.layers.length - 1){ toast('すでに一番下です'); return; }
   pushUndo();
@@ -3863,7 +4239,334 @@ $('btnLayerDown').addEventListener('click', function(){
   f.active++;
   renderLayerPanel(); render();
 });
+/* ================= レイヤーの中身の移動 =================
+   レイヤーパネルの「移動」を押すと移動モードに入り、選択中レイヤーの
+   中身だけをステージ上でライブにずらして見せる（他レイヤーは固定）。
+   操作は3系統：
+   ・キャンバス上でのドラッグ（view の pointer 処理側で受ける）
+   ・PCの矢印キー（keydown 処理側で受ける。長押しは keydown の
+     繰り返しでそのまま連続移動になる。Enter＝決定／Esc＝キャンセル）
+   ・表示中の操作パネル（十字キー）の矢印ボタン（長押し連続は holdable が担う。
+     移動開始時に操作パネルを自動で開くことはしない）
+   移動中は十字キーをカーソル移動ではなくレイヤー移動に使い、
+   「操作ボタンのみ使用」設定や「打ち込み」とは干渉しない。
+   中身のずらし自体は、読み込みの調整やサイズ変更と同じ
+   offsetCopyData で行う：キャンバス外へはみ出した分は切り落とし
+   （回り込みなし）。移動先は、最低1ドットがキャンバス内に残る
+   範囲までに制限する（全部を外へ出して見失わないため）。
+   履歴は「決定」のときに1回分だけ積む：開始時点で撮影した
+   スナップショット（移動前の姿）をそのまま undoStack へ積むので、
+   移動中のライブ更新で履歴が増えることはない。「キャンセル」では
+   開始時のピクセルへ戻し、履歴には何も残さない */
+var layerMove = null;
+var layerDrag = null;
+function moveModeBlock(){
+  if (layerMove){
+    toast('レイヤーの移動中はこの操作はできません。先に「決定」か「キャンセル」を押してください');
+    return true;
+  }
+  /* レイヤーの拡縮（調整画面）を開いている間も、レイヤー移動中と
+     同様にレイヤー切替・フレーム操作などをブロックする */
+  if (typeof lscState !== 'undefined' && lscState){
+    toast('レイヤーの拡縮中はこの操作はできません。先に「決定」か「キャンセル」を押してください');
+    return true;
+  }
+  return false;
+}
+function lmSigned(v){ return (v > 0 ? '+' : '') + v; }
+function lmOffsetLabel(){
+  if (!layerMove) return;
+  $('lmOffset').textContent = 'X ' + lmSigned(layerMove.dx) + ' ・ Y ' + lmSigned(layerMove.dy);
+}
+function setLayerMoveOffset(dx, dy){
+  var st = layerMove; if (!st) return;
+  dx = clamp(dx, -(S.w - 1), S.w - 1);
+  dy = clamp(dy, -(S.h - 1), S.h - 1);
+  if (dx === st.dx && dy === st.dy) return;
+  st.dx = dx; st.dy = dy;
+  /* ライブ表示：対象レイヤーの data を、開始時のピクセルから
+     現在のオフセットで置き直す（元のピクセルは origData に保持） */
+  st.layer.data = offsetCopyData(st.origData, S.w, S.h, S.w, S.h, dx, dy);
+  lmOffsetLabel();
+  render();
+}
+function moveLayerBy(mx, my){
+  if (!layerMove) return;
+  setLayerMoveOffset(layerMove.dx + mx, layerMove.dy + my);
+}
+function startLayerMove(){
+  if (layerMove) return;
+  if (typeof lscState !== 'undefined' && lscState){ toast('レイヤーの拡縮中はこの操作はできません。先に「決定」か「キャンセル」を押してください'); return; }
+  var f = curFrame(), L = f.layers[f.active];
+  if (!L) return;
+  if (!L.visible){ toast('非表示のレイヤーは移動できません。先に「表示中」にしてください'); return; }
+  if (S.playing) stopPlay();
+  layerMove = {
+    frame: f, layer: L, name: L.name,
+    origData: L.data.slice(), dx: 0, dy: 0,
+    snap: snapshotDoc()
+  };
+  $('lmTitle').textContent = '「' + L.name + '」を移動中';
+  lmOffsetLabel();
+  $('lmBar').classList.add('open');
+  render();
+}
+function endLayerMove(commit){
+  var st = layerMove; if (!st) return;
+  layerMove = null; layerDrag = null;
+  $('lmBar').classList.remove('open');
+  if (commit){
+    if (st.dx !== 0 || st.dy !== 0){
+      S.undoStack.push(st.snap);
+      if (S.undoStack.length > HISTORY_MAX) S.undoStack.shift();
+      trimHistory(S.undoStack);
+      S.redoStack = []; syncUndoBtns();
+      toast('レイヤー「' + st.name + '」を移動しました（X ' + lmSigned(st.dx) + ' ・ Y ' + lmSigned(st.dy) + '）');
+    } else {
+      toast('移動しませんでした');
+    }
+  } else {
+    st.layer.data = st.origData;
+    toast('レイヤーの移動をキャンセルしました');
+  }
+  render();
+}
+$('btnLayerMove').addEventListener('click', startLayerMove);
+$('lmOk').addEventListener('click', function(){ endLayerMove(true); });
+$('lmCancel').addEventListener('click', function(){ endLayerMove(false); });
+
+/* ================= レイヤー単体の拡縮 =================
+   レイヤーパネルの「拡縮」を押すと、「レイヤーの拡縮」画面（モーダル）が
+   開く。読み込みの調整・キャンバスサイズの調整と同じ使い回しで、
+   現在のキャンバスの枠の上に、背景として他のレイヤーの合成を表示し、
+   その上に対象レイヤーの絵を重ねて操作する：
+   ・対象レイヤーの絵（キャンバス寸法のビットマップ）を1つの画像として
+     扱い、大きさは拡大縮小スライダーで変える：10%〜400%（1%刻み）、
+     縦横比は維持し、拡縮は絵の中心を基準に行う。リサンプルは既存の
+     エリア多数決（majorityResampleData）。倍率100%のときはリサンプル
+     せず元のピクセルをそのまま使う
+   ・初期値は倍率100%・位置オフセット0（＝無変更の状態）
+   ・位置はプレビューのドラッグと画面内の矢印ボタン／PCの矢印キー
+     （1ドット移動・長押し連続）で調整できる。位置は「拡縮後の絵の
+     左上がキャンバスのどこに来るか」というオフセット（dx, dy）で持ち、
+     絵がキャンバスより大きい軸でははみ出しを許し、小さい軸では
+     キャンバスの内側に収める（読み込みの調整と同じ決め方）。
+     はみ出した分は切り落とされる
+   ・プレビューの対象レイヤーは、その不透明度を効かせて背景の上に
+     重ねて見せる（確定後のデータ自体には不透明度は焼き込まない）
+   「決定」で対象レイヤーだけへ履歴1回分で適用し、「キャンセル」では
+   変更しない。非表示レイヤーは対象にできない。操作中はレイヤー移動
+   モードと同様に、レイヤー切替・フレーム操作などをブロックする
+   （moveModeBlock が lscState も見る） */
+var lscState = null;
+/* 対象レイヤーを除いた全レイヤーの合成キャンバス（背景表示用）。
+   重ね方は flattenCanvas と同じ（下のレイヤーから順に、不透明度を
+   効かせて重ねる）。操作中は他のレイヤーは変わらないので、開いた
+   ときに1回だけ作る */
+function lscBackgroundCanvas(frame, exclIdx){
+  var c = document.createElement('canvas'); c.width = S.w; c.height = S.h;
+  var ctx = c.getContext('2d');
+  for (var i = frame.layers.length - 1; i >= 0; i--){
+    if (i === exclIdx) continue;
+    var L = frame.layers[i];
+    if (!L.visible) continue;
+    ctx.save();
+    ctx.globalAlpha = (L.opacity == null ? 100 : L.opacity) / 100;
+    ctx.drawImage(frameToCanvas(L.data), 0, 0);
+    ctx.restore();
+  }
+  return c;
+}
+function openLayerScale(){
+  if (lscState) return;
+  if (layerMove){ moveModeBlock(); return; }
+  var f = curFrame(), L = f.layers[f.active];
+  if (!L) return;
+  if (!L.visible){ toast('非表示のレイヤーは拡縮できません。先に「表示中」にしてください'); return; }
+  if (S.playing) stopPlay();
+  /* 色変換のプレビューが立っていたら、先に元の絵へ戻してから開く */
+  previewRequest = null;
+  endLevelPreview();
+  lscState = {
+    frame: f, layer: L, name: L.name,
+    origData: L.data.slice(), scale: 100,
+    dx: 0, dy: 0,
+    bgCanvas: lscBackgroundCanvas(f, f.active),
+    placed: null, placedScale: 0,
+    wx0: 0, wy0: 0, ww: 1, wh: 1
+  };
+  $('lscScale').value = 100;
+  $('lscInfo').textContent = 'レイヤー「' + L.name + '」（' + S.w + '×' + S.h + '）を拡縮します。背景は他のレイヤーの合成です';
+  lscUpdateScaleLabel();
+  openModal('lscModal');
+  drawLsc();
+}
+/* 現在の倍率での配置サイズとピクセル（拡縮済み）を返す。
+   倍率が変わるまで使い回す。倍率100%（または丸めた結果が元の
+   大きさと同じ）のときはリサンプルしない */
+function lscPlacement(){
+  var st = lscState;
+  if (st.placed && st.placedScale === st.scale) return st.placed;
+  var pw = Math.max(1, Math.round(S.w * st.scale / 100));
+  var ph = Math.max(1, Math.round(S.h * st.scale / 100));
+  var data = (st.scale === 100 || (pw === S.w && ph === S.h))
+    ? st.origData
+    : majorityResampleData(st.origData, S.w, S.h, pw, ph);
+  var cnv = document.createElement('canvas');
+  cnv.width = pw; cnv.height = ph;
+  cnv.getContext('2d').putImageData(new ImageData(new Uint8ClampedArray(data), pw, ph), 0, 0);
+  st.placed = { pw: pw, ph: ph, data: data, canvas: cnv };
+  st.placedScale = st.scale;
+  return st.placed;
+}
+/* スライダー横の倍率（%）と拡縮後のピクセルサイズ表示を更新する */
+function lscUpdateScaleLabel(){
+  if (!lscState) return;
+  var p = lscPlacement();
+  $('lscScalePct').textContent = lscState.scale + '%';
+  $('lscScaleSize').textContent = '（' + p.pw + '×' + p.ph + '）';
+}
+function lscClampPos(){
+  var st = lscState, p = lscPlacement();
+  st.dx = clamp(st.dx, Math.min(0, S.w - p.pw), Math.max(0, S.w - p.pw));
+  st.dy = clamp(st.dy, Math.min(0, S.h - p.ph), Math.max(0, S.h - p.ph));
+}
+function drawLsc(){
+  if (!lscState) return;
+  var st = lscState, p = lscPlacement();
+  var cv = $('lscView'), ctx = cv.getContext('2d');
+  /* 表示範囲（ワールド）は、位置が動きうる範囲全体で固定する。
+     ドラッグ中に絵の位置や縮尺がぶれないようにするため（読み込みの
+     調整画面と同じ考え方） */
+  var wx0 = Math.min(0, S.w - p.pw), wy0 = Math.min(0, S.h - p.ph);
+  var wx1 = Math.max(S.w, p.pw), wy1 = Math.max(S.h, p.ph);
+  var ww = wx1 - wx0, wh = wy1 - wy0;
+  st.wx0 = wx0; st.wy0 = wy0; st.ww = ww; st.wh = wh;
+  var scale = Math.min(440 / ww, 440 / wh, 16);
+  cv.width = Math.max(1, Math.round(ww * scale));
+  cv.height = Math.max(1, Math.round(wh * scale));
+  var scX = cv.width / ww, scY = cv.height / wh;
+  /* 市松模様（透明部分） */
+  ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--checker1') || '#fff';
+  ctx.fillRect(0, 0, cv.width, cv.height);
+  ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--checker2') || '#ccc';
+  var csq = 8;
+  for (var y = 0; y * csq < cv.height; y++) for (var x = 0; x * csq < cv.width; x++)
+    if ((x + y) % 2 === 0) ctx.fillRect(x * csq, y * csq, csq, csq);
+  ctx.imageSmoothingEnabled = false;
+  /* 背景：他のレイヤーの合成（キャンバスの位置に固定） */
+  ctx.drawImage(st.bgCanvas, (0 - wx0) * scX, (0 - wy0) * scY, S.w * scX, S.h * scY);
+  /* 対象レイヤーの絵（不透明度を効かせて重ねる） */
+  ctx.save();
+  ctx.globalAlpha = (st.layer.opacity == null ? 100 : st.layer.opacity) / 100;
+  ctx.drawImage(p.canvas, (st.dx - wx0) * scX, (st.dy - wy0) * scY, p.pw * scX, p.ph * scY);
+  ctx.restore();
+  /* キャンバスの外側を暗くして、枠を縁取る（枠の外側にはみ出した
+     部分は切り落とされる） */
+  var fx = (0 - wx0) * scX, fy = (0 - wy0) * scY;
+  var fw = S.w * scX, fh = S.h * scY;
+  ctx.fillStyle = 'rgba(20,18,12,.45)';
+  ctx.fillRect(0, 0, cv.width, fy);
+  ctx.fillRect(0, fy + fh, cv.width, Math.max(0, cv.height - fy - fh));
+  ctx.fillRect(0, fy, fx, fh);
+  ctx.fillRect(fx + fw, fy, Math.max(0, cv.width - fx - fw), fh);
+  ctx.strokeStyle = '#c8401f'; ctx.lineWidth = 2;
+  ctx.strokeRect(fx + 1, fy + 1, Math.max(2, fw - 2), Math.max(2, fh - 2));
+  $('lscPos').textContent = '絵の左上：横 ' + st.dx + '、縦 ' + st.dy + '（キャンバスの左上が 0、0 です）';
+}
+function moveLsc(mx, my){
+  if (!lscState) return;
+  lscState.dx += mx; lscState.dy += my;
+  lscClampPos();
+  drawLsc();
+}
+/* 拡大縮小スライダー：拡縮は絵の中心を基準に行う（中心の位置は
+   変えずに大きさだけ変える）。位置がはみ出す場合は従来どおり
+   クランプする */
+$('lscScale').addEventListener('input', function(){
+  if (!lscState) return;
+  var v = clamp(Math.round(+this.value) || 100, 10, 400);
+  if (v === lscState.scale){ lscUpdateScaleLabel(); return; }
+  var st = lscState, old = lscPlacement();
+  var cx = st.dx + old.pw / 2, cy = st.dy + old.ph / 2;
+  st.scale = v;
+  var p = lscPlacement();
+  st.dx = Math.round(cx - p.pw / 2);
+  st.dy = Math.round(cy - p.ph / 2);
+  lscClampPos();
+  lscUpdateScaleLabel();
+  drawLsc();
+});
+(function(){
+  var cv = $('lscView');
+  var drag = null;
+  cv.addEventListener('pointerdown', function(e){
+    if (!lscState) return;
+    e.preventDefault();
+    cv.setPointerCapture(e.pointerId);
+    drag = { x: e.clientX, y: e.clientY, dx: lscState.dx, dy: lscState.dy };
+  });
+  cv.addEventListener('pointermove', function(e){
+    if (!drag || !lscState) return;
+    var st = lscState;
+    var r = cv.getBoundingClientRect();
+    if (!r.width || !r.height) return;
+    /* 絵が指・マウスについてくる：右へ引くと絵は右へ動く */
+    st.dx = drag.dx + Math.round((e.clientX - drag.x) / (r.width / st.ww));
+    st.dy = drag.dy + Math.round((e.clientY - drag.y) / (r.height / st.wh));
+    lscClampPos();
+    drawLsc();
+  });
+  function end(){ drag = null; }
+  cv.addEventListener('pointerup', end);
+  cv.addEventListener('pointercancel', end);
+})();
+document.querySelectorAll('#lscPadRow [data-lsdir]').forEach(function(b){
+  var d = b.dataset.lsdir;
+  var mx = d === 'left' ? -1 : d === 'right' ? 1 : 0;
+  var my = d === 'up' ? -1 : d === 'down' ? 1 : 0;
+  holdable(b, function(){ moveLsc(mx, my); });
+});
+/* 確定処理。配置（拡縮後のピクセルとオフセット）を対象レイヤーだけへ
+   履歴1回分で適用する。倍率100%・オフセット0（無変更）のときは
+   履歴を積まず、その旨を知らせる */
+function commitLayerScale(){
+  if (!lscState) return;
+  var st = lscState;
+  var p = lscPlacement();
+  var dx = st.dx, dy = st.dy, scale = st.scale, layer = st.layer, name = st.name;
+  lscState = null;
+  closeModals();
+  if (scale === 100 && dx === 0 && dy === 0){
+    toast('変更しませんでした');
+    return;
+  }
+  /* 配置は読み込み・サイズ変更と同じ offsetCopyData で行う：
+     キャンバスからはみ出した部分は切り落とされ、足りない部分は
+     透明になる */
+  var data = offsetCopyData(p.data, p.pw, p.ph, S.w, S.h, dx, dy);
+  pushUndo();
+  layer.data = data;
+  renderLayerPanel();
+  render();
+  toast('レイヤー「' + name + '」を ' + scale + '% に拡縮しました');
+}
+function cancelLayerScale(){
+  if (!lscState) return;
+  lscState = null;
+  closeModals();
+  toast('レイヤーの拡縮をキャンセルしました');
+}
+$('btnLayerScale').addEventListener('click', openLayerScale);
+$('lscOk').addEventListener('click', commitLayerScale);
+$('lscCancel').addEventListener('click', cancelLayerScale);
+/* モーダルの外側タップで閉じた場合も、状態を残さない（残ると
+   moveModeBlock が操作をブロックし続けてしまうため） */
+$('lscModal').addEventListener('click', function(e){
+  if (e.target === this && lscState) lscState = null;
+});
 $('layerOpacity').addEventListener('input', function(){
+  if (layerMove || (typeof lscState !== 'undefined' && lscState)) return;
   var f = curFrame();
   if (f.layers[f.active]){
     /* スライダーをドラッグしている間は、最初の1回だけ履歴に積む */
@@ -3876,9 +4579,11 @@ $('layerOpacity').addEventListener('change', function(){ S._opHist = false; });
 
 /* ================= frames / playback ================= */
 $('frAdd').addEventListener('click', function(){
+  if (moveModeBlock()) return;
   pushUndo(); S.frames.splice(S.cur+1, 0, makeFrame()); S.cur++; renderLayerPanel(); render();
 });
 $('frDup').addEventListener('click', function(){
+  if (moveModeBlock()) return;
   var f = curFrame();
   var copy = { layers: f.layers.map(function(L){
     return { data: L.data.slice(), visible: L.visible, opacity: L.opacity, name: L.name };
@@ -3886,6 +4591,7 @@ $('frDup').addEventListener('click', function(){
   pushUndo(); S.frames.splice(S.cur+1, 0, copy); S.cur++; renderLayerPanel(); render();
 });
 $('frDel').addEventListener('click', function(){
+  if (moveModeBlock()) return;
   if (S.frames.length <= 1){ toast('最後の1コマは削除できません'); return; }
   pushUndo(); S.frames.splice(S.cur, 1); S.cur = clamp(S.cur, 0, S.frames.length-1); renderLayerPanel(); render();
 });
@@ -3919,7 +4625,7 @@ document.querySelectorAll('.modal').forEach(function(m){
   m.addEventListener('click', function(e){ if (e.target === m) closeModals(); });
 });
 /* 読み込みボタンは中間メニューを挟まず、いきなりOSの画像ピッカーを開く */
-$('btnImport').addEventListener('click', function(){ $('filePhoto').value=''; $('filePhoto').click(); });
+$('btnImport').addEventListener('click', function(){ if (moveModeBlock()) return; $('filePhoto').value=''; $('filePhoto').click(); });
 /* ヘルプボタンは「アイコンの説明」シートを開く（閉じる手段は data-close とシート外タップが担当） */
 $('btnHelp').addEventListener('click', function(){ openModal('helpModal'); });
 stage.addEventListener('dragover', function(e){ e.preventDefault(); });
@@ -3946,6 +4652,20 @@ function rawFitSize(iw, ih){
   return [Math.max(1, Math.round(iw * sc)), Math.max(1, Math.round(ih * sc))];
 }
 
+/* ドキュメントが新規（まだ何も描かれていない）かどうか。全フレーム・
+   全レイヤーのピクセルがすべて透明なら、まだ実質的に新規とみなす。
+   新規ドキュメントへの読み込みは従来どおり、キャンバスを画像サイズに
+   合わせて即取り込みする（読み込みの調整画面は出さない） */
+function isDocBlank(){
+  for (var fi = 0; fi < S.frames.length; fi++){
+    var ls = S.frames[fi].layers;
+    for (var li = 0; li < ls.length; li++){
+      var d = ls[li].data;
+      for (var i = 3; i < d.length; i += 4){ if (d[i] !== 0) return false; }
+    }
+  }
+  return true;
+}
 /* 画像の読み込みが終わった共通処理。Image と ImageBitmap の両経路から呼ばれる */
 function finishLoad(src, iw, ih, url, name){
   S.srcImg = src; S.srcName = name || '画像'; S.srcW = iw; S.srcH = ih;
@@ -3959,6 +4679,12 @@ function finishLoad(src, iw, ih, url, name){
   /* 読み込んだ画像は「編集できるピクセルのレイヤー」として一番上に追加する */
   closeModals();
   if (S.playing) stopPlay();
+  /* 既存ドキュメントへの読み込みで、画像サイズ（640上限で丸めた後の
+     サイズ）が現在のキャンバスと異なる場合は「読み込みの調整」画面を
+     開く。新規ドキュメントへの読み込みと、キャンバスと同サイズの
+     読み込みは従来どおり即取り込みする。GIFは専用経路（importGifFrames）
+     で対象外 */
+  if (!isDocBlank() && (tw !== S.w || th !== S.h) && openImportAdjust(tw, th)) return;
   var q = rawPixelsFromSource(tw, th);
   /* キャンバスを画像比率に合わせるリサイズとレイヤー追加を、まとめて1回のUndoで戻せるようにする */
   pushUndo();
@@ -4272,7 +4998,7 @@ $('btnWhiteNow').addEventListener('click', function(){
     fr.layers.forEach(function(L){ changed += applyWhiteToAlphaData(L.data, S.w, S.h, fringe); });
   });
   render();
-  toast('白い部分を透明にしました（' + changed + 'ドット、全フレーム・全レイヤー、「戻す」で戻せます）');
+  toast('白い部分を透明にしました（' + changed + 'ドット、全フレーム・全レイヤー）');
 });
 
 /* -------- 色数（変換設定） --------
@@ -4690,11 +5416,13 @@ function addPixelLayer(q, name, raw){
   }
 }
 /* -------- 今の絵を減色（読み込み時ではなく、描いた絵そのものへ後から適用） --------
-   変換パネルの「色数」設定を使い、全フレーム・全レイヤーのピクセルをその色数まで
-   落とす。減色パレットの選定はフレームを合成した絵の単位（合成基準）で、
-   レイヤー個別の設定ではなく全体へまとめて適用し、履歴は1回分。
-   ついでに色パレットも減色結果の色（全レイヤーの和集合・最大48色）へ差し替える */
-/* 全フレーム・全レイヤーを cnt 色以下に減色する（履歴は積まない：
+   変換パネルの「色数」設定を使い、ピクセルをその色数まで落とす。対象は
+   「変換の適用範囲」に従い、既定（全レイヤー）では全フレーム・全レイヤー、
+   「現在のレイヤー」ではそのレイヤーだけ。減色パレットの選定は、対象が
+   全レイヤーのときはフレームを合成した絵の単位（合成基準）で、現在の
+   レイヤーだけのときはそのレイヤーの色だけで行い、履歴は1回分。
+   ついでに色パレットも減色結果の色（対象の和集合・最大48色）へ差し替える */
+/* 適用範囲内のピクセルを cnt 色以下に減色する（履歴は積まない：
    呼び出し側が pushUndo 済みであること）。変換そのものは共通処理
    （convertColorDatas）へ変換指定を渡して行い、カラーレベル補正→
    減色→現在の色空間への吸着（最後）の順で当てる。色パレットも
@@ -4718,9 +5446,10 @@ function reduceSpec(cnt){
 }
 function reduceAllNow(cnt){
   var spec = reduceSpec(cnt);
-  var datas = [];
-  S.frames.forEach(function(fr){ fr.layers.forEach(function(L){ datas.push(L.data); }); });
-  var hexes = convertColorDatas(datas, S.w, S.h, spec, frameGroupsFor(S.frames));
+  /* 適用範囲に従う：'layer' のときは現在のレイヤーだけを減色し、
+     パレット選定もそのレイヤーの色だけで行う */
+  var sc = scopedDatas();
+  var hexes = convertColorDatas(sc.datas, S.w, S.h, spec, sc.groups);
   if (hexes.length >= 4) buildPalette(hexes.slice(0, 48));
 }
 $('btnReduce').addEventListener('click', function(){
@@ -4740,7 +5469,7 @@ $('btnReduce').addEventListener('click', function(){
     pushUndo();
     reduceAllNow(0);
     render();
-    toast('色数はそのままに、レベルとコントラストの補正を適用しました（全フレーム・全レイヤー、「戻す」で戻せます）');
+    toast('色数はそのままに、レベルとコントラストの補正を適用しました（' + scopeLabel() + '）');
     return;
   }
   if (S.playing) stopPlay();
@@ -4751,7 +5480,7 @@ $('btnReduce').addEventListener('click', function(){
   pushUndo();
   reduceAllNow(cnt);
   render();
-  toast('今の絵を ' + cnt + ' 色以下に減色しました（全フレーム・全レイヤー、「戻す」で戻せます）');
+  toast('今の絵を ' + cnt + ' 色以下に減色しました（' + scopeLabel() + '）');
 });
 
 /* ================= パネル境界のドラッグ調整（PC表示のみ） =================
