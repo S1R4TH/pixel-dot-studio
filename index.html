@@ -4872,24 +4872,44 @@ $('btnReduce').addEventListener('click', function(){
    肝は「受け取り用のファイル（Blob）を、保存画面を開く時点で完成
    させて保持しておく」こと。押してから作り始めると、環境によっては
    ユーザー操作の有効期限切れや共有の受け付け拒否で詰む。
-   ・ファイルに保存（ボタン）：共有シートとは完全に分けた専用経路。
-     タップのハンドラ内で同期的に showSaveFilePicker を呼ぶ
-     （Windows の通常の保存ダイアログ。Chrome／Edge 等）。
-     ピッカーが失敗したら（埋め込み表示での権限エラー等）黙って
-     終わらず、ダウンロード発火（downloadViaAnchor）に自動で落とす。
-     ただしユーザーがダイアログを自分で閉じた場合（AbortError）は
-     落とさない。ピッカーが無い環境（iPhone 等）は最初から
-     ダウンロード発火
-   ・共有シートを開く（ボタン）：共有シートはこのボタン専用。保存
-     画面を開く時点で作っておいた File をそのまま
-     navigator.share({files}) に渡す
-   ・新しいタブで開く／プレビューの長押し保存：画像専用
+   ボタンは環境で出し分ける（判定は shareOrDownload が開くたびに行う）：
+   ・スマホ表示（showSaveFilePicker が無いモバイル環境）：保存の
+     ボタンは「保存」の1つだけにする。中身は共有シート
+     （navigator.share に用意済みの File を渡す）で、ラベルだけ
+     「保存」に変える。「ファイルに保存」は出さない（シートの中に
+     「"ファイル"に保存」が含まれていて二重になるため）
+   ・PC（showSaveFilePicker がある環境）：「ファイルに保存」が主。
+     共有シートとは完全に分けた専用経路で、タップのハンドラ内で
+     同期的に showSaveFilePicker を呼ぶ（Windows の通常の保存
+     ダイアログ。Chrome／Edge 等）。ピッカーが失敗したら（埋め込み
+     表示での権限エラー等）黙って終わらず、ダウンロード発火
+     （downloadViaAnchor）に自動で落とす。ただしユーザーが
+     ダイアログを自分で閉じた場合（AbortError）は落とさない。
+     「共有シートを開く」は、用意済みの File で navigator.canShare
+     が true の時だけ出す（共有できない組み合わせで押してエラーに
+     なるボタンを出さない）
+   ・ピッカーの無いPC環境：「ファイルに保存」はダウンロード発火
+     とし、「共有シートを開く」は同じく canShare の時だけ出す
+   ・新しいタブで開く／プレビューの長押し保存：画像専用（全環境）
    プレビュー画像は「書き出し倍率を適用した後の書き出し画像そのもの」
    （blob の URL）をそのまま表示するので、長押しで保存しても倍率が
    効いたサイズで保存される */
 var saveState = { blob: null, file: null, filename: '', url: '' };
 var IS_IOS = /iP(hone|ad|od)/.test(navigator.userAgent) ||
   (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+/* スマホ表示かどうか（保存ボタンの出し分け用）：保存ピッカー
+   （showSaveFilePicker）が無いことに加えて、モバイル端末である
+   こと（iOS／Android 等の UA、またはスマホ幅＋タッチ）で判定する。
+   ピッカーの無いだけのPC環境はここでは false になり、従来どおり
+   「ファイルに保存（ダウンロード発火）＋共有ボタン（canShare 時
+   のみ）」の出し分けになる */
+function saveEnvIsMobile(){
+  if (typeof window.showSaveFilePicker === 'function') return false;
+  if (IS_IOS) return true;
+  if (/Android|iPhone|iPod|webOS|BlackBerry|Windows Phone/i.test(navigator.userAgent)) return true;
+  return !!(navigator.maxTouchPoints > 0 && window.matchMedia &&
+    window.matchMedia('(max-width: 820px)').matches);
+}
 function shareOrDownload(blob, filename){
   if (!blob){ toast('書き出しに失敗しました。お手数ですが、操作をやり直してください'); return; }
   if (saveState.url) URL.revokeObjectURL(saveState.url);
@@ -4911,20 +4931,39 @@ function shareOrDownload(blob, filename){
   /* 新しいタブで開くのは画像だけ。画像以外はタブで開くと中身が
      テキスト表示されて行き止まりになるので出さない */
   open.style.display = isImg ? '' : 'none';
-  /* 「ファイルに保存」ボタンは全環境で出す。発火方式はタップ時の
-     ハンドラで選ぶ（保存ダイアログ→失敗時はダウンロード発火） */
-  $('saveFile').style.display = '';
   var canShareFiles = false;
   if (saveState.file){
     try { canShareFiles = navigator.canShare ? !!navigator.canShare({ files: [saveState.file] }) : !!navigator.share; }
     catch(e){ canShareFiles = false; }
   }
-  $('saveShare').style.display = (canShareFiles && !!navigator.share) ? '' : 'none';
+  var mobileSave = saveEnvIsMobile();
+  var shareBtn = $('saveShare');
+  if (mobileSave){
+    /* スマホ表示：保存ボタンは「保存」の1つだけ。中身は従来の
+       共有シート（saveShare のハンドラ）で、ラベルだけ変える。
+       「ファイルに保存」は出さない（シート内に「"ファイル"に
+       保存」が含まれていて二重になるため）。このボタンが唯一の
+       保存経路なので、canShare の結果では隠さない */
+    $('saveFile').style.display = 'none';
+    shareBtn.textContent = '保存';
+    shareBtn.style.display = '';
+  } else {
+    /* PC：「ファイルに保存」が主（ピッカーあり＝保存ダイアログ→
+       失敗時はダウンロード発火、ピッカーなし＝ダウンロード発火。
+       発火方式はタップ時のハンドラで選ぶ）。「共有シートを開く」は
+       用意済みのファイルで canShare が true の時だけ出す */
+    $('saveFile').style.display = '';
+    shareBtn.textContent = '共有シートを開く';
+    shareBtn.style.display = (canShareFiles && !!navigator.share) ? '' : 'none';
+  }
   var hint = $('saveHint');
   if (isImg){
     hint.textContent = IS_IOS
       ? 'プレビューを長押しで保存できます。'
       : 'プレビューを長押し（PCでは右クリック）でも保存できます。';
+    hint.style.display = '';
+  } else if (mobileSave){
+    hint.textContent = '「保存」を押して、開いた画面の「"ファイル"に保存」を選ぶとファイルへ保存できます。';
     hint.style.display = '';
   } else {
     hint.textContent = '「ファイルに保存」を押すと、保存ダイアログまたはダウンロードの確認が表示されます。';
@@ -4949,15 +4988,17 @@ function downloadViaAnchor(){
   setTimeout(function(){ URL.revokeObjectURL(url); }, 60000);
 }
 /* 「ファイルに保存」の発火：共有シート（navigator.share）はこの
-   ボタンでは一切使わない（共有シートは「共有シートを開く」ボタン
-   専用）。タップのハンドラ内で同期的に分岐する：
+   ボタンでは一切使わない（共有シートはもう一方のボタン専用：
+   PCでは「共有シートを開く」、スマホ表示では「保存」のラベルで
+   出る）。タップのハンドラ内で同期的に分岐する：
    ・showSaveFilePicker が使える環境ではまずそれを呼んで、Windows の
      通常の保存ダイアログを出す
    ・ピッカーがエラー／拒否で失敗したら（埋め込み表示での権限
      エラー等）、黙って終わらずダウンロード発火に自動で落とす。
      ただしユーザーがダイアログを自分でキャンセルした場合
      （AbortError）は何もしない（落とさない）
-   ・ピッカーが無い環境（iPhone 等）は最初からダウンロード発火 */
+   ・ピッカーが無いPC環境は最初からダウンロード発火
+   （スマホ表示ではこのボタン自体を出さない） */
 $('saveFile').addEventListener('click', async function(){
   if (!saveState.blob) return;
   if (typeof window.showSaveFilePicker === 'function'){
@@ -4982,16 +5023,19 @@ $('saveShare').addEventListener('click', async function(){
   if (!file){
     try { file = new File([saveState.blob], saveState.filename, { type: saveState.blob.type }); } catch(e){ file = null; }
   }
-  /* 代替の案内は「ファイルに保存」ボタンが出ている環境だけに出す */
+  /* 代替の案内は「ファイルに保存」ボタンが出ている環境だけに出す。
+     スマホ表示ではこのボタンのラベルが「保存」なので、失敗時の
+     文言も「保存」に合わせる（「共有シート」とは言わない） */
   var altNote = $('saveFile').style.display !== 'none' ? '。「ファイルに保存」をお試しください' : '';
+  var mobileSave = saveEnvIsMobile();
   if (!file || !navigator.share){
-    toast('この環境では共有シートを開けません' + altNote);
+    toast(mobileSave ? 'この環境では保存できません' : 'この環境では共有シートを開けません' + altNote);
     return;
   }
   try { await navigator.share({ files: [file] }); }
   catch(e){
     if (e && e.name === 'AbortError') return;
-    toast('共有シートを開けませんでした' + altNote);
+    toast(mobileSave ? '保存できませんでした' : '共有シートを開けませんでした' + altNote);
   }
 });
 function framePNG(scale){
@@ -5444,9 +5488,10 @@ function lzwEncode(indexed, minCode){
 /* ================= project =================
    入口は書き出し画面（exportModal）内の「プロジェクト」欄。
    プロジェクトJSONの書き出し／読み込みは全環境で使う。書き出しは
-   他の書き出しと同じく保存画面を経由し、保存の発火は保存画面の
-   「ファイルに保存」ボタン（保存ダイアログ優先、失敗時は
-   downloadViaAnchor）で行う。「新規」も全環境で使う */
+   他の書き出しと同じく保存画面を経由する（PCでは「ファイルに
+   保存」ボタン＝保存ダイアログ優先・失敗時は downloadViaAnchor、
+   スマホ表示では「保存」ボタン＝共有シート）。「新規」も全環境で
+   使う */
 /* 編集状態（version 3で追加）：カラーレベル／コントラスト／減色方式／
    ディザリング／色数の設定（セレクタの選択値と任意入力値の両方）／
    現在のフレーム位置／オニオンスキンのオン・オフ（と透明度）を
