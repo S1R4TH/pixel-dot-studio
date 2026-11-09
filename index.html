@@ -4838,18 +4838,16 @@ $('btnReduce').addEventListener('click', function(){
    肝は「受け取り用のファイル（Blob）を、保存画面を開く時点で完成
    させて保持しておく」こと。押してから作り始めると、環境によっては
    ユーザー操作の有効期限切れや共有の受け付け拒否で詰む。
-   ・ファイルに保存（ボタン）：showSaveFilePicker は使わない。
-     旧実装（ピッカー優先→失敗したらダウンロードへ fallback）では、
-     PC・iPhone の実機どちらでも押しても無反応だった。組み込み表示
-     （アプリ内ブラウザ／iframe）ではピッカーもプログラムからの
-     ダウンロード発火も黙って捨てられるため、発火はタップの
-     ハンドラ内で同期的に行う：navigator.share({files}) が使える
-     環境ではまず共有シート（iOS では「ファイルに保存」が選べる）へ
-     渡し、使えない環境と、共有が受け付けられなかった場合の受け皿
-     として downloadViaAnchor（createObjectURL → download 属性と
-     ファイル名を持つ一時リンクを body に追加 → click() → リンクを
-     除去 → 60秒後に revokeObjectURL）で発火させる
-   ・共有シート：保存画面を開く時点で作っておいた File をそのまま
+   ・ファイルに保存（ボタン）：共有シートとは完全に分けた専用経路。
+     タップのハンドラ内で同期的に showSaveFilePicker を呼ぶ
+     （Windows の通常の保存ダイアログ。Chrome／Edge 等）。
+     ピッカーが失敗したら（埋め込み表示での権限エラー等）黙って
+     終わらず、ダウンロード発火（downloadViaAnchor）に自動で落とす。
+     ただしユーザーがダイアログを自分で閉じた場合（AbortError）は
+     落とさない。ピッカーが無い環境（iPhone 等）は最初から
+     ダウンロード発火
+   ・共有シートを開く（ボタン）：共有シートはこのボタン専用。保存
+     画面を開く時点で作っておいた File をそのまま
      navigator.share({files}) に渡す
    ・新しいタブで開く／プレビューの長押し保存：画像専用
    プレビュー画像は「書き出し倍率を適用した後の書き出し画像そのもの」
@@ -4880,7 +4878,7 @@ function shareOrDownload(blob, filename){
      テキスト表示されて行き止まりになるので出さない */
   open.style.display = isImg ? '' : 'none';
   /* 「ファイルに保存」ボタンは全環境で出す。発火方式はタップ時の
-     同期処理で共有シート→ダウンロードリンクの順に選ぶ（下記参照） */
+     ハンドラで選ぶ（保存ダイアログ→失敗時はダウンロード発火） */
   $('saveFile').style.display = '';
   var canShareFiles = false;
   if (saveState.file){
@@ -4895,16 +4893,16 @@ function shareOrDownload(blob, filename){
       : 'プレビューを長押し（PCでは右クリック）でも保存できます。';
     hint.style.display = '';
   } else {
-    hint.textContent = '「ファイルに保存」を押すと、保存方法の選択（共有シート）またはダウンロードの確認が表示されます。';
+    hint.textContent = '「ファイルに保存」を押すと、保存ダイアログまたはダウンロードの確認が表示されます。';
     hint.style.display = '';
   }
   openModal('saveModal');
 }
-/* 保存の発火（統一方式）：Blob は保存画面を開いた時点で完成させて
-   保持してある（saveState.blob）。保存タップのハンドラ内では、
-   createObjectURL → download 属性とファイル名を持つ一時リンクを
-   body に追加 → click() → リンクを除去 → 60秒後に revokeObjectURL、
-   という手順だけを行う */
+/* 保存の発火（ダウンロード）：Blob は保存画面を開いた時点で完成
+   させて保持してある（saveState.blob）。createObjectURL → download
+   属性とファイル名を持つ一時リンクを body に追加 → click() → リンク
+   を除去 → 60秒後に revokeObjectURL、という手順だけを行う
+   （ユーザーの自作アプリと同じ方式） */
 function downloadViaAnchor(){
   if (!saveState.blob) return;
   var url = URL.createObjectURL(saveState.blob);
@@ -4916,30 +4914,30 @@ function downloadViaAnchor(){
   a.remove();
   setTimeout(function(){ URL.revokeObjectURL(url); }, 60000);
 }
-/* 「ファイルに保存」の発火：showSaveFilePicker は使わない（組み込み
-   表示では黙って拒否され、旧実装は PC／iPhone ともに無反応だった）。
-   タップのハンドラ内で同期的に分岐する：ファイル共有ができる環境
-   では、その場で用意済みの File を共有シートへ渡す（iOS のシート
-   には「ファイルに保存」がある）。共有が使えない／受け付けられて
-   いない環境では、従来のダウンロードリンク発火に落とす。共有が
-   キャンセルされた場合は何もしない（落とさない） */
-$('saveFile').addEventListener('click', function(){
+/* 「ファイルに保存」の発火：共有シート（navigator.share）はこの
+   ボタンでは一切使わない（共有シートは「共有シートを開く」ボタン
+   専用）。タップのハンドラ内で同期的に分岐する：
+   ・showSaveFilePicker が使える環境ではまずそれを呼んで、Windows の
+     通常の保存ダイアログを出す
+   ・ピッカーがエラー／拒否で失敗したら（埋め込み表示での権限
+     エラー等）、黙って終わらずダウンロード発火に自動で落とす。
+     ただしユーザーがダイアログを自分でキャンセルした場合
+     （AbortError）は何もしない（落とさない）
+   ・ピッカーが無い環境（iPhone 等）は最初からダウンロード発火 */
+$('saveFile').addEventListener('click', async function(){
   if (!saveState.blob) return;
-  var file = saveState.file;
-  if (!file){
-    try { file = new File([saveState.blob], saveState.filename, { type: saveState.blob.type }); } catch(e){ file = null; }
-  }
-  var canShareFiles = false;
-  if (file && navigator.share && navigator.canShare){
-    try { canShareFiles = !!navigator.canShare({ files: [file] }); } catch(e){ canShareFiles = false; }
-  }
-  if (canShareFiles){
-    navigator.share({ files: [file] }).catch(function(e){
+  if (typeof window.showSaveFilePicker === 'function'){
+    try {
+      var handle = await window.showSaveFilePicker({ suggestedName: saveState.filename });
+      var writable = await handle.createWritable();
+      await writable.write(saveState.blob);
+      await writable.close();
+      toast('保存しました');
+      return;
+    } catch(e){
       if (e && e.name === 'AbortError') return;
-      /* 共有が開けなかった環境ではダウンロード発火に落とす */
-      downloadViaAnchor();
-    });
-    return;
+      /* ピッカーが使えなかった環境ではダウンロード発火に落とす */
+    }
   }
   downloadViaAnchor();
 });
@@ -5412,8 +5410,8 @@ function lzwEncode(indexed, minCode){
 /* ================= project =================
    入口は書き出し画面（exportModal）内の「プロジェクト」欄。
    プロジェクトJSONの書き出し／読み込みは全環境で使う。書き出しは
-   他の書き出しと同じく保存画面を経由し、保存の発火は統一方式
-   （showSaveFilePicker がある環境ではダイアログ優先、それ以外は
+   他の書き出しと同じく保存画面を経由し、保存の発火は保存画面の
+   「ファイルに保存」ボタン（保存ダイアログ優先、失敗時は
    downloadViaAnchor）で行う。「新規」も全環境で使う */
 /* 編集状態（version 3で追加）：カラーレベル／コントラスト／減色方式／
    ディザリング／色数の設定（セレクタの選択値と任意入力値の両方）／
